@@ -2,7 +2,7 @@ package com.jforexcn.shared.client;
 
 
 import com.dukascopy.api.IStrategy;
-import com.dukascopy.api.Instrument;
+import com.dukascopy.api.JFCurrency;
 import com.dukascopy.api.RequiresFullAccess;
 import com.dukascopy.api.system.ISystemListener;
 import com.dukascopy.api.system.ITesterClient;
@@ -27,7 +27,7 @@ public class StrategyTestRunner {
     private static final Logger LOGGER = LoggerFactory.getLogger(StrategyTestRunner.class);
     private static String jnlpUrl = "http://platform.dukascopy.com/demo/jforex.jnlp";
 
-    public static void run(final IStrategy strategy, String userName, String password, String fromStr, String toStr) throws Exception {
+    public static void run(final IStrategy strategy, String username, String password, String fromStr, String toStr) throws Exception {
 
         // get the instance of the IClient interface
         final ITesterClient client = TesterFactory.getDefaultInstance();
@@ -45,7 +45,7 @@ public class StrategyTestRunner {
                 dateFormat.setTimeZone(TimeZone.getTimeZone("GTM"));
 
                 final SimpleDateFormat dateFormat2 = new SimpleDateFormat("yyyy-MM-dd");
-                dateFormat.setTimeZone(TimeZone.getTimeZone("GTM"));
+                dateFormat2.setTimeZone(TimeZone.getTimeZone("GTM"));
 
                 ITesterReportData reportData = client.getReportData(processId);
                 LOGGER.info("Strategy name: " + reportData.getStrategyName());
@@ -93,7 +93,7 @@ public class StrategyTestRunner {
         LOGGER.info("Connecting...");
         // connect to the server using jnlp, user name and password
         // connection is needed for data downloading
-        client.connect(jnlpUrl, userName, password);
+        client.connect(jnlpUrl, username, password);
 
         // wait for it to connect
         int i = 10; // wait max ten seconds
@@ -122,7 +122,7 @@ public class StrategyTestRunner {
 //        LOGGER.info("Subscribing instruments...");
 //        client.setSubscribedInstruments(instruments);
         // setting initial deposit
-        client.setInitialDeposit(Instrument.EURUSD.getSecondaryJFCurrency(), 10000);
+        client.setInitialDeposit(JFCurrency.getInstance("USD"), 10000);
         //client.setCacheDirectory(new File("C:/temp/cacheTemp"));
         // load data
         LOGGER.info("Downloading data");

@@ -15,7 +15,7 @@ public class StrategyRunner {
     public static final Logger LOGGER = LoggerFactory.getLogger(StrategyRunner.class);
     private static String jnlpUrl = "http://platform.dukascopy.com/demo/jforex.jnlp";
 
-    public static void run(final IStrategy strategy, String userName, String password, boolean isLive) throws Exception {
+    public static void run(final IStrategy strategy, String username, String password, boolean isLive) throws Exception {
 
         if (isLive) {
             jnlpUrl = "http://platform.dukascopy.com/live/jforex.jnlp";
@@ -68,7 +68,7 @@ public class StrategyRunner {
                             " Connection error, retryCount " + retryCount, "");
                 }
                 try {
-                    client.connect(jnlpUrl, userName, password);
+                    client.connect(jnlpUrl, username, password);
                 } catch (Exception e) {
                     e.printStackTrace();
                     tryClientConnect();
@@ -79,7 +79,7 @@ public class StrategyRunner {
         LOGGER.info("Connecting...");
         // connect to the server using jnlp, user name and password
         // connection is needed for data downloading
-        client.connect(jnlpUrl, userName, password);
+        client.connect(jnlpUrl, username, password);
 
         // wait for it to connect
         int i = 10; // wait max ten seconds
