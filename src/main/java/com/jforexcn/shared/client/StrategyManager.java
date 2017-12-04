@@ -14,6 +14,7 @@ public class StrategyManager {
         sStrategyMap.put(strategyName, strategyClass);
     }
 
+    @SuppressWarnings("unchecked")
     public static <T> T get(String strategyName) {
         Class<T> strategyClass = (Class<T>) sStrategyMap.get(strategyName);
         try {

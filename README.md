@@ -2,6 +2,14 @@
 
 Android Studio项目, 可以直接用Android Studio打开. 
 
+### 文档
+
+JForex API开发文档:
+
+[英文官方原版](https://www.dukascopy.com/wiki/en/development)
+
+[中文版持续更新中](https://www.jforexcn.com/development)
+
 ### 编译
 
 `./gradlew uberJar`

@@ -90,8 +90,11 @@ public class CLI {
     }
 
     private static void printHelp() {
-        System.out.println("Usage: see file " + CONFIG_FILE_NAME + " for details.");
+        System.out.println("Usage: ");
+        System.out.println("java -jar JForexCN-3.0.jar [sommand] [strategy]");
         System.out.println("  command: test, live, demo, email");
-        System.out.println("  strategies: " + StrategyManager.listAllStrategies());
+        System.out.println("  strategy: " + StrategyManager.listAllStrategies());
+        System.out.println("  See file " + CONFIG_FILE_NAME + " for other arguments.");
+
     }
 }

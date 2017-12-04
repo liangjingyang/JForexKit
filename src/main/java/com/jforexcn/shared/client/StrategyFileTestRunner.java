@@ -134,7 +134,7 @@ public class StrategyFileTestRunner {
         LOGGER.info("Subscribing instruments...");
         client.setSubscribedInstruments(instruments);
         // setting initial deposit
-        client.setInitialDeposit(Instrument.EURUSD.getSecondaryCurrency(), 50000);
+        client.setInitialDeposit(Instrument.EURUSD.getSecondaryJFCurrency(), 50000);
         //client.setCacheDirectory(new File("C:/temp/cacheTemp"));
         // load data
         LOGGER.info("Downloading data");
