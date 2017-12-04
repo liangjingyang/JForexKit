@@ -1,0 +1,128 @@
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+
+    dependencies {
+        classpath 'biz.aQute.bnd:biz.aQute.bnd.gradle:3.3.0'
+    }
+}
+
+plugins {
+    id 'org.hidetake.ssh' version '2.9.0'
+}
+
+apply plugin: 'java'
+apply plugin: 'maven-publish'
+apply plugin: 'biz.aQute.bnd.builder'
+
+group 'com.jforexcn'
+version '3.0'
+
+repositories {
+    mavenCentral()
+    maven { url "http://repo.maven.apache.org/maven2" }
+    maven { url "http://www.dukascopy.com/client/jforexlib/publicrepo/" }
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            from components.java
+        }
+    }
+}
+
+dependencies {
+    compile 'org.reflections:reflections:0.9.11'
+    compile 'org.apache.commons:commons-email:1.4'
+    compile 'com.dukascopy.dds2:DDS2-jClient-JForex:3.2.19'
+    compile 'com.dukascopy.api:JForex-API:2.13.43'
+    compile 'org.slf4j:slf4j-log4j12:1.7.5'
+    testCompile 'junit:junit:4.12'
+}
+
+gradle.projectsEvaluated {
+    tasks.withType(JavaCompile) {
+        options.compilerArgs << "-Xlint:unchecked" << "-Xlint:deprecation"
+    }
+}
+
+jar {
+    manifest {
+        attributes "Main-Class": "com.jforexcn.shared.CLI",
+                'Implementation-Title': project.name,
+                'Implementation-Version': version,
+                'Bundle-Name': 'JForexCN',
+                'Bundle-SymbolicName': 'com.jforexcn.shared',
+                'Export-Package': 'com.jforexcn.shared*'
+    }
+    baseName = project.name
+}
+
+task uberJar(type: Jar) {
+    manifest {
+        attributes "Main-Class": "com.jforexcn.shared.CLI",
+                'Implementation-Title': project.name,
+                'Implementation-Version': version,
+                'Class-Path': '.' + ' ' + configurations.compile.collect { it.getName() }.join(' ')
+    }
+    baseName = project.name
+    from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
+    with jar
+}
+
+task copyJarToPlugins(type: Copy, dependsOn: ':jar') {
+    if (project.hasProperty('pluginFolder')) {
+        from "${project.buildDir}/libs/${jar.archiveName}"
+        into pluginFolder
+    }
+}
+
+task copyUberJarToPlugins(type: Copy, dependsOn: ':uberJar') {
+    if (project.hasProperty('pluginFolder')) {
+        from "${project.buildDir}/libs/${jar.archiveName}"
+        into pluginFolder
+    }
+}
+
+
+
+ssh.settings {
+    dryRun = project.hasProperty('dryRun')
+}
+
+remotes {
+    if (project.hasProperty('remoteHost')) {
+        server {
+            host = remoteHost
+            user = remoteUser
+            passphrase = remoteKeyPassphrase
+            identity = file("${System.properties['user.home']}/.ssh/id_rsa")
+        }
+    }
+}
+
+task showPlatformVersion() {
+    doLast {
+        ssh.run {
+            session(remotes.server) {
+                execute 'uname -a'
+                execute 'cat /etc/*-release', ignoreError: true
+            }
+        }
+    }
+}
+
+task deploy(dependsOn: ':uberJar') {
+    doLast {
+        if (project.hasProperty('remoteHost')) {
+            ssh.run {
+                session(remotes.server) {
+                    put from: "${project.buildDir}/libs/${jar.archiveName}", into: "/${remotes.server.user}/JForexCN/"
+                    put from: "${project.buildDir}/JForexCN.properties", into: "/${remotes.server.user}/JForexCN/"
+                }
+            }
+        }
+    }
+}

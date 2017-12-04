@@ -1,0 +1,43 @@
+# JForexCN Configuration
+# Copy this file to JForexCN.properties
+
+# The key format is command.field. For example test.strategy, test is command and strategy is
+# strategy name. `java -jar JForexCN-3.0.jar` to show commands and strategies
+# Fields:
+#   username: JForex login account
+#   password: JForex login password
+#   dateFrom: The starting date for historical testing
+#   dateTo: The ending date for historical testing
+
+# For test command
+test.strategy=OrderWatcher
+test.username=DEMO2VfmJz
+test.password=VfmJz
+## yyyy-MM-dd
+test.dateFrom=2017-11-27
+test.dateTo=2017-11-30
+
+# For live command
+live.strategy=OrderWatcher
+live.username=DEMO2VfmJz
+live.password=VfmJz
+
+# For demo command
+demo.strategy=OrderWatcher
+demo.username=DEMO2VfmJz
+demo.password=VfmJz
+
+# For email command. The email command will send a test email with the following subject and body
+# to check if the email config is ok.
+email.subject=test
+email.msg=This is a test email.
+
+# For email config. The class MailService use the following email config.
+email.to=to1@gmail.com,to2@gmail.com
+email.from=from@gmail.com
+email.password=123456
+email.hostname=smtp.gmail.com
+email.smtpPort=465
+email.sslOn=true
+email.socketConnectionTimeout=15000
+email.socketTimeout=15000
