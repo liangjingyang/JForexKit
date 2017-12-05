@@ -2,6 +2,9 @@ package com.jforexcn.wiki.strategy;
 
 /**
  * Created by simple(simple.continue@gmail.com) on 05/12/2017.
+ *
+ * https://www.dukascopy.com/wiki/en/development/get-started-api/use-in-jforex/strategy-tutorial
+ * https://www.jforexcn.com/development/getting-started/general/strategy-tutorial.html
  */
 
 
