@@ -2,7 +2,7 @@ package com.jforexcn.shared;
 
 import com.dukascopy.api.IStrategy;
 import com.jforexcn.shared.lib.MailService;
-import com.jforexcn.shared.client.StrategyManager;
+import com.jforexcn.shared.lib.StrategyManager;
 import com.jforexcn.shared.client.StrategyTestRunner;
 
 import com.jforexcn.shared.client.StrategyRunner;

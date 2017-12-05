@@ -1,4 +1,4 @@
-package com.jforexcn.shared.client;
+package com.jforexcn.shared.lib;
 
 
 import com.dukascopy.api.IStrategy;

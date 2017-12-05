@@ -1,6 +1,6 @@
 # JForex SDK Example
 
-Android Studio项目, 可以直接用Android Studio打开. 
+JForex API的Android Studio项目, 可以直接用Android Studio打开. 
 
 ### 文档
 
@@ -52,3 +52,8 @@ JForex API开发文档:
 4. 发送测试邮件, 测试邮件配置:
 
 `java -jar JForexCN-3.0.jar email`
+
+### 其他
+
+1. 项目里的`com.jforexcn.wiki`下面是[JForex中文Wiki](https://www.jforexcn.com/development)里面设计到的策略, 指标, 和插件. 会随着文档的跟新陆续补充.
+2. 在运行命令的时候, 只有`com.jforexcn.shared.strategy`里的策略才会被自动识别到, 如果像测试`com.jforexcn.wiki.strategy`里的策略, 可以手动将其拷贝或移动到`com.jforexcn.shared.strategy`下面.
