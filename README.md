@@ -1,6 +1,6 @@
-# JForex SDK Example
+# JForex Kit
 
-JForex API的Android Studio项目, 可以直接用Android Studio打开. 
+包含了JForex API的Android Studio项目, 可以直接用Android Studio打开. 
 
 ### 文档
 
