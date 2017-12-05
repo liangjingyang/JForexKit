@@ -1,8 +1,8 @@
-# JForexCN Configuration
-# Copy this file to JForexCN.properties
+# JForexKit Configuration
+# Copy this file to JForexKit.properties
 
 # The key format is command.field. For example test.strategy, test is command and strategy is
-# strategy name. `java -jar JForexCN-3.0.jar` to show commands and strategies
+# strategy name. `java -jar JForexKit-3.0.jar` to show commands and strategies
 # Fields:
 #   username: JForex login account
 #   password: JForex login password
