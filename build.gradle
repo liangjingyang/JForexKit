@@ -53,7 +53,7 @@ jar {
         attributes "Main-Class": "com.jforexcn.shared.CLI",
                 'Implementation-Title': project.name,
                 'Implementation-Version': version,
-                'Bundle-Name': 'JForexCN',
+                'Bundle-Name': project.name,
                 'Bundle-SymbolicName': 'com.jforexcn.shared',
                 'Export-Package': 'com.jforexcn.shared*'
     }
@@ -119,8 +119,8 @@ task deploy(dependsOn: ':uberJar') {
         if (project.hasProperty('remoteHost')) {
             ssh.run {
                 session(remotes.server) {
-                    put from: "${project.buildDir}/libs/${jar.archiveName}", into: "/${remotes.server.user}/JForexCN/"
-                    put from: "${project.buildDir}/JForexCN.properties", into: "/${remotes.server.user}/JForexCN/"
+                    put from: "${project.buildDir}/libs/${jar.archiveName}", into: "/${remotes.server.user}/JForexKit/"
+                    put from: "${project.buildDir}/JForexKit.properties", into: "/${remotes.server.user}/JForexKit/"
                 }
             }
         }

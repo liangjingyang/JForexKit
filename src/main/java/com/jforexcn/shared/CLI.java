@@ -11,15 +11,20 @@ import com.jforexcn.shared.client.StrategyRunner;
 import org.reflections.Reflections;
 
 import java.io.FileInputStream;
+import java.io.IOException;
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.util.Properties;
 import java.util.Set;
+import java.util.jar.Attributes;
+import java.util.jar.Manifest;
 
 /**
  * Created by simple on 1/15/16.
  */
 public class CLI {
 
-    private static final String CONFIG_FILE_NAME = "JForexCN.properties";
+    private static final String PROJECT_NAME = "JForexKit";
 
     public static void main(String[] args) throws Exception {
 
@@ -38,7 +43,7 @@ public class CLI {
         try {
             Properties configProperties = new Properties();
             FileInputStream file;
-            file = new FileInputStream(CONFIG_FILE_NAME);
+            file = new FileInputStream(PROJECT_NAME + ".properties");
             configProperties.load(file);
             file.close();
 
@@ -60,6 +65,7 @@ public class CLI {
                     .buildInstance();
 
             String command = args[0];
+
 
             if (command.equals("test")) {
                 String strategy = configProperties.getProperty("test.strategy");
@@ -90,11 +96,20 @@ public class CLI {
     }
 
     private static void printHelp() {
-        System.out.println("Usage: ");
-        System.out.println("java -jar JForexCN-3.0.jar [sommand] [strategy]");
-        System.out.println("  command: test, live, demo, email");
-        System.out.println("  strategy: " + StrategyManager.listAllStrategies());
-        System.out.println("  See file " + CONFIG_FILE_NAME + " for other arguments.");
-
+        try {
+            URLClassLoader cl = (URLClassLoader) CLI.class.getClassLoader();
+            URL url = cl.findResource("META-INF/MANIFEST.MF");
+            Manifest manifest = new Manifest(url.openStream());
+            Attributes attributes = manifest.getMainAttributes();
+            String projectName = attributes.getValue("Implementation-Title");
+            String version = attributes.getValue("Implementation-Version");
+            System.out.println(projectName + " " + version + " Usage: ");
+            System.out.println("java -jar " + PROJECT_NAME + ".jar [command] [strategy]");
+            System.out.println("  command: test, live, demo, email");
+            System.out.println("  strategy: " + StrategyManager.listAllStrategies());
+            System.out.println("See file " + PROJECT_NAME + ".properties for other arguments.");
+        } catch (IOException e) {
+            System.out.println("Print Help Error: " + e.getLocalizedMessage());
+        }
     }
 }
