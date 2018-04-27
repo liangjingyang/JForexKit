@@ -45,7 +45,7 @@ public class ChartUsage implements IStrategy{
     public OfferSide myOfferSide;
     @Configurable(value="Period value")
     public Period myPeriod = Period.TEN_MINS;
-    @Configurable("SMA time period")
+    @Configurable("SMA time cPeriod")
     public int smaTimePeriod = 30;
     //3.add following parameters:
     @Configurable("Add OHLC Index to chart")
@@ -70,7 +70,7 @@ public class ChartUsage implements IStrategy{
         this.openedChart = context.getChart(myInstrument);
         this.factory = openedChart.getChartObjectFactory();
 
-        //subscribe an instrument:
+        //subscribe an cInstrument:
         Set<Instrument> instruments = new HashSet<Instrument>();
         instruments.add(myInstrument);
         context.setSubscribedInstruments(instruments, true);
@@ -141,7 +141,7 @@ public class ChartUsage implements IStrategy{
         if(order == null || !engine.getOrders().contains(order)){
             engine.submitOrder("MyStrategyOrder", instrument, myCommand, 0.1);
             //7.we will draw an arrow when makeing an order.
-            //So we need a time of the current bar - to get it, we add one period of a bar to a time of the last completed bar (previousBar).
+            //So we need a time of the current bar - to get it, we add one cPeriod of a bar to a time of the last completed bar (previousBar).
             long time = previousBar.getTime() + myPeriod.getInterval();
             //8.creating a IChartObject - an up-array or down-array and add a text label to the array.
             //finally, add a IChartObject(array in this case) to the chart.
@@ -176,7 +176,7 @@ public class ChartUsage implements IStrategy{
             return false;
         }
         if (chart.getSelectedPeriod() != this.myPeriod) {
-            printMeError("chart period is not " + this.myPeriod);
+            printMeError("chart cPeriod is not " + this.myPeriod);
             return false;
         }
         if(chart.getFilter() != this.filter){

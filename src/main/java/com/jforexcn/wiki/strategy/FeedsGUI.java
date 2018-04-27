@@ -75,7 +75,7 @@ public class FeedsGUI implements IStrategy, IFeedListener {
     public int takeProfitPips = 10;
     @Configurable("Break event pips")
     public double breakEventPips = 5;
-    @Configurable("SMA time period")
+    @Configurable("SMA time cPeriod")
     public int smaTimePeriod = 30;
     @Configurable("Feed type")
     public FeedType myFeed = FeedType.RENKO_2_PIPS_EURGBP_BID;
@@ -322,7 +322,7 @@ public class FeedsGUI implements IStrategy, IFeedListener {
             }
         } else if (chart.getFeedDescriptor().getDataType() == DataType.TIME_PERIOD_AGGREGATION){
             if(chart.getSelectedPeriod() != myFeed.getFeedDescriptor().getPeriod()){
-                printMeError("chart period is not " + myFeed.getFeedDescriptor().getPeriod());
+                printMeError("chart cPeriod is not " + myFeed.getFeedDescriptor().getPeriod());
                 return false;
             }
         }

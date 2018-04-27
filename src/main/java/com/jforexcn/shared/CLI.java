@@ -34,6 +34,12 @@ public class CLI {
         for (Class<? extends IStrategy> strategy : allStrategies) {
             StrategyManager.register(strategy.getSimpleName(), strategy);
         }
+        reflections = new Reflections("com.jforexcn.inbox.strategy");
+        allStrategies =
+                reflections.getSubTypesOf(IStrategy.class);
+        for (Class<? extends IStrategy> strategy : allStrategies) {
+            StrategyManager.register(strategy.getSimpleName(), strategy);
+        }
 
         if (args == null || args.length == 0) {
             printHelp();
@@ -104,7 +110,7 @@ public class CLI {
             String projectName = attributes.getValue("Implementation-Title");
             String version = attributes.getValue("Implementation-Version");
             System.out.println(projectName + " " + version + " Usage: ");
-            System.out.println("java -jar " + PROJECT_NAME + ".jar [command] [strategy]");
+            System.out.println("java -jar " + PROJECT_NAME + ".jar [command]");
             System.out.println("  command: test, live, demo, email");
             System.out.println("  strategy: " + StrategyManager.listAllStrategies());
             System.out.println("See file " + PROJECT_NAME + ".properties for other arguments.");

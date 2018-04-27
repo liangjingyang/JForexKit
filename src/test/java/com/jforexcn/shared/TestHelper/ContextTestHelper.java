@@ -139,31 +139,6 @@ public class ContextTestHelper implements IContext {
     }
 
     @Override
-    public IFinancialInstrumentProvider getFinancialInstrumentProvider() {
-        return null;
-    }
-
-    @Override
-    public IFeedInfoProvider getFeedInfoProvider() {
-        return null;
-    }
-
-    @Override
-    public Set<IFinancialInstrument> getSubscribedFinancialInstruments() {
-        return null;
-    }
-
-    @Override
-    public void subscribeToTicksFeed(IFinancialInstrument financialInstrument, IFinancialTickFeedListener listener) {
-
-    }
-
-    @Override
-    public void subscribeToBarsFeed(IFinancialInstrument financialInstrument, Period period, OfferSide offerSide, IFinancialBarFeedListener listener) {
-
-    }
-
-    @Override
     public void setSubscribedInstruments(Set<Instrument> instruments) {
 
     }
@@ -319,6 +294,31 @@ public class ContextTestHelper implements IContext {
     }
 
     @Override
+    public IFinancialInstrumentProvider getFinancialInstrumentProvider() {
+        return null;
+    }
+
+    @Override
+    public IFeedInfoProvider getFeedInfoProvider() {
+        return null;
+    }
+
+    @Override
+    public Set<IFinancialInstrument> getSubscribedFinancialInstruments() {
+        return null;
+    }
+
+    @Override
+    public void subscribeToTicksFeed(IFinancialInstrument financialInstrument, IFinancialTickFeedListener listener) {
+
+    }
+
+    @Override
+    public void subscribeToBarsFeed(IFinancialInstrument financialInstrument, Period period, OfferSide offerSide, IFinancialBarFeedListener listener) {
+
+    }
+
+    @Override
     public void subscribeToRangeBarFeed(Instrument instrument, OfferSide offerSide, PriceRange priceRange, IRangeBarFeedListener listener) {
 
     }
@@ -362,4 +362,5 @@ public class ContextTestHelper implements IContext {
     public IStrategies getStrategies() {
         return null;
     }
+
 }

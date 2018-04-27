@@ -99,10 +99,10 @@ public class PositionManager implements IStrategy {
             for (IOrder order : getSingleOrderWithoutStopLoss(instrument)) {
                 if (IEngine.OrderCommand.BUY.equals(order.getOrderCommand())) {
                     h.setStopLossPrice(order, bidBar.getClose() - h.MAX_STOP_LOSS_PIPS * instrument.getPipValue());
-                    h.puts("Set MAX stop loss BUY id:" + order.getId() + ", instrument:" + instrument);
+                    h.puts("Set MAX stop loss BUY id:" + order.getId() + ", cInstrument:" + instrument);
                 } else if (IEngine.OrderCommand.SELL.equals(order.getOrderCommand())) {
                     h.setStopLossPrice(order, askBar.getClose() + h.MAX_STOP_LOSS_PIPS * instrument.getPipValue());
-                    h.puts("Set MAX stop loss SELL id:" + order.getId() + ", instrument:" + instrument);
+                    h.puts("Set MAX stop loss SELL id:" + order.getId() + ", cInstrument:" + instrument);
                 }
             }
 
@@ -117,11 +117,11 @@ public class PositionManager implements IStrategy {
                         if (lossPrice > 0) {
                             if (askBar.getClose() > order.getOpenPrice() + lossPrice) {
                                 h.setStopLossPrice(order, order.getOpenPrice());
-                                h.puts("Set Stop Loss to Open Price BUY id:" + order.getId() + ", instrument:" + instrument);
+                                h.puts("Set Stop Loss to Open Price BUY id:" + order.getId() + ", cInstrument:" + instrument);
                             }
                         }
                         if (order.getProfitLossInPips() > h.LITTLE_GOAL && lossPrice <= 0) {
-                            h.puts("Get Little Goal close BUY id:" + order.getId() + ", amount: " + (order.getAmount() - h.HALF_HAND) + ", instrument:" + instrument);
+                            h.puts("Get Little Goal close BUY id:" + order.getId() + ", amount: " + (order.getAmount() - h.HALF_HAND) + ", cInstrument:" + instrument);
                             h.close(order, order.getAmount() - h.HALF_HAND);
                         }
                     } else if (IEngine.OrderCommand.SELL.equals(order.getOrderCommand())) {
@@ -129,11 +129,11 @@ public class PositionManager implements IStrategy {
                         if (lossPrice > 0) {
                             if (bidBar.getClose() < order.getOpenPrice() - lossPrice) {
                                 h.setStopLossPrice(order, order.getOpenPrice());
-                                h.puts("Set Stop Loss to Open Price SELL id:" + order.getId() + ", instrument:" + instrument);
+                                h.puts("Set Stop Loss to Open Price SELL id:" + order.getId() + ", cInstrument:" + instrument);
                             }
                         }
                         if (order.getProfitLossInPips() > h.LITTLE_GOAL && lossPrice <= 0) {
-                            h.puts("Get Little Goal close SELL id:" + order.getId() + ", amount: " + (order.getAmount() - h.HALF_HAND) + ", instrument:" + instrument);
+                            h.puts("Get Little Goal close SELL id:" + order.getId() + ", amount: " + (order.getAmount() - h.HALF_HAND) + ", cInstrument:" + instrument);
                             h.close(order, order.getAmount() - h.HALF_HAND);
                         }
                     }
@@ -172,19 +172,19 @@ public class PositionManager implements IStrategy {
 //            // 有止损价格的独立仓位, 并且止损价高于开仓价格的, 移动止损: 2/3个10日ATR
 //            double half_atr;
 //            double stopLossPrice;
-//            for (IOrder order : getSingleOrderWithStopLoss(instrument)) {
+//            for (IOrder order : getSingleOrderWithStopLoss(cInstrument)) {
 //                if (IEngine.OrderCommand.BUY.equals(order.getOrderCommand()) && order.getOpenPrice() <= order.getStopLossPrice()) {
-//                    half_atr = ((int) (indicator.atr(instrument, Period.DAILY, OfferSide.BID, 10, 0) / instrument.getPipValue())) * instrument.getPipValue() / 3 * 2;
+//                    half_atr = ((int) (indicator.atr(cInstrument, Period.DAILY, OfferSide.BID, 10, 0) / cInstrument.getPipValue())) * cInstrument.getPipValue() / 3 * 2;
 //                    if (askBar.getClose() > order.getStopLossPrice() + half_atr) {
-//                        stopLossPrice = ((int) ((askBar.getClose() - half_atr) / instrument.getPipValue())) * instrument.getPipValue();
-//                        h.puts("FIVE_MINS BUY instrument: " + instrument + ", order.label: " + order.getLabel() + ", half_atr: " + half_atr + ", stopLossPrice: " + stopLossPrice);
+//                        stopLossPrice = ((int) ((askBar.getClose() - half_atr) / cInstrument.getPipValue())) * cInstrument.getPipValue();
+//                        h.puts("FIVE_MINS BUY cInstrument: " + cInstrument + ", order.label: " + order.getLabel() + ", half_atr: " + half_atr + ", stopLossPrice: " + stopLossPrice);
 //                        h.setStopLossPrice(order, stopLossPrice);
 //                    }
 //                } else if (IEngine.OrderCommand.SELL.equals(order.getOrderCommand()) && order.getOpenPrice() >= order.getStopLossPrice()) {
-//                    half_atr = ((int) (indicator.atr(instrument, Period.DAILY, OfferSide.ASK, 10, 0) / instrument.getPipValue())) * instrument.getPipValue() / 3 * 2;
+//                    half_atr = ((int) (indicator.atr(cInstrument, Period.DAILY, OfferSide.ASK, 10, 0) / cInstrument.getPipValue())) * cInstrument.getPipValue() / 3 * 2;
 //                    if (bidBar.getClose() < order.getStopLossPrice() - half_atr) {
-//                        stopLossPrice = ((int) ((bidBar.getClose() + half_atr) / instrument.getPipValue())) * instrument.getPipValue();
-//                        h.puts("FIVE_MINS SELL instrument: " + instrument + ", order.label: " + order.getLabel() + ", half_atr: " + half_atr + ", stopLossPrice: " + stopLossPrice);
+//                        stopLossPrice = ((int) ((bidBar.getClose() + half_atr) / cInstrument.getPipValue())) * cInstrument.getPipValue();
+//                        h.puts("FIVE_MINS SELL cInstrument: " + cInstrument + ", order.label: " + order.getLabel() + ", half_atr: " + half_atr + ", stopLossPrice: " + stopLossPrice);
 //                        h.setStopLossPrice(order, stopLossPrice);
 //                    }
 //                }
@@ -353,7 +353,7 @@ public class PositionManager implements IStrategy {
         }
 
         /**
-         * allow only one order per instrument one minute.
+         * allow only one order per cInstrument one minute.
          */
         private void submitOrder(String label, Instrument instrument, IEngine.OrderCommand orderCommand,
                                  double amount, double price, double slippage) throws JFException {

@@ -3,6 +3,9 @@ package com.jforexcn.shared.lib;
 
 import com.dukascopy.api.IStrategy;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -24,6 +27,7 @@ import javax.tools.ToolProvider;
  * Created by simple on 1/29/16.
  */
 public class StrategyManager {
+    public static final Logger LOGGER = LoggerFactory.getLogger(StrategyManager.class);
     public static ConcurrentHashMap<String, Class<?>> sStrategyMap = new ConcurrentHashMap<String, Class<?>>();
 
     public static void register(String strategyName, Class<?> strategyClass) {

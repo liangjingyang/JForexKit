@@ -26,7 +26,7 @@ public class Indicator implements IIndicator {
                 new InputParameterInfo("Input data", InputParameterInfo.Type.DOUBLE)
         };
         optInputParameterInfos = new OptInputParameterInfo[] {
-                new OptInputParameterInfo("Time period", OptInputParameterInfo.Type.OTHER,
+                new OptInputParameterInfo("Time cPeriod", OptInputParameterInfo.Type.OTHER,
                         new IntegerRangeDescription(2, 2, 100, 1))
         };
         outputParameterInfos = new OutputParameterInfo[] {

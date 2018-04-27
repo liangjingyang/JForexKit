@@ -198,6 +198,11 @@ public class EngineTestHelper extends BaseTestHelper implements IEngine {
     }
 
     @Override
+    public boolean isTradable(Instrument instrument) {
+        return false;
+    }
+
+    @Override
     public IOrder submitOrder(String label, IFinancialInstrument financialInstrument, OrderCommand orderCommand, double amount, double price, double slippage, double stopLossPrice, double takeProfitPrice, long goodTillTime, String comment) throws JFException {
         return null;
     }

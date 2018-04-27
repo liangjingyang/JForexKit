@@ -66,7 +66,7 @@ public class Feeds implements IStrategy, IFeedListener {
     public int takeProfitPips = 10;
     @Configurable("Break event pips")
     public double breakEventPips = 5;
-    @Configurable("SMA time period")
+    @Configurable("SMA time cPeriod")
     public int smaTimePeriod = 30;
     /*
      * 3. remove following parameters:
@@ -315,7 +315,7 @@ public class Feeds implements IStrategy, IFeedListener {
             }
         } else if (chart.getFeedDescriptor().getDataType() == DataType.TIME_PERIOD_AGGREGATION) {
             if (chart.getSelectedPeriod() != myFeed.getFeedDescriptor().getPeriod()) {
-                printMeError("chart period is not " + myFeed.getFeedDescriptor().getPeriod());
+                printMeError("chart cPeriod is not " + myFeed.getFeedDescriptor().getPeriod());
                 return false;
             }
         }

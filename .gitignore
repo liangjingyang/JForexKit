@@ -8,3 +8,4 @@ gradle.properties
 JForexKit.properties
 logs/
 src/main/java/com/jforexcn/inbox/
+src/test/java/com/jforexcn/inbox/

@@ -36,9 +36,10 @@ publishing {
 dependencies {
     compile 'org.reflections:reflections:0.9.11'
     compile 'org.apache.commons:commons-email:1.4'
-    compile 'com.dukascopy.dds2:DDS2-jClient-JForex:3.2.19'
-    compile 'com.dukascopy.api:JForex-API:2.13.43'
+    compile 'com.dukascopy.dds2:DDS2-jClient-JForex:3.3.0'
+    compile 'com.dukascopy.api:JForex-API:2.13.49'
     compile 'org.slf4j:slf4j-log4j12:1.7.5'
+    testCompile 'org.mockito:mockito-core:2.7.2'
     testCompile 'junit:junit:4.12'
 }
 
@@ -58,6 +59,21 @@ jar {
                 'Export-Package': 'com.jforexcn.shared*'
     }
     baseName = project.name
+}
+
+task hubJar(type: Jar) {
+    manifest {
+        attributes 'Implementation-Title': project.name,
+                'Implementation-Version': version,
+                'Bundle-Name': project.name,
+                'Bundle-SymbolicName': 'com.jforexcn.hub',
+                'Export-Package': 'com.jforexcn.hub*'
+    }
+    baseName = project.name
+    exclude('com/jforexcn/wiki/**')
+    exclude('com/jforexcn/inbox/**')
+    exclude('com/jforexcn/shared/**')
+    with jar
 }
 
 task uberJar(type: Jar) {
@@ -119,8 +135,8 @@ task deploy(dependsOn: ':uberJar') {
         if (project.hasProperty('remoteHost')) {
             ssh.run {
                 session(remotes.server) {
-                    put from: "${project.buildDir}/libs/${jar.archiveName}", into: "/${remotes.server.user}/JForexKit/"
-                    put from: "${project.buildDir}/JForexKit.properties", into: "/${remotes.server.user}/JForexKit/"
+                    put from: "${project.buildDir}/libs/${jar.archiveName}", into: "${remotePath}/"
+                    put from: "${project.rootDir}/JForexKit.properties", into: "${remotePath}/"
                 }
             }
         }

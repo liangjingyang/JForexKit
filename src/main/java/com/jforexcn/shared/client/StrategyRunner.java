@@ -5,6 +5,7 @@ import com.dukascopy.api.IStrategy;
 import com.dukascopy.api.RequiresFullAccess;
 import com.dukascopy.api.system.*;
 import com.jforexcn.shared.lib.MailService;
+import com.jforexcn.shared.lib.StrategyManager;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,7 +13,7 @@ import org.slf4j.LoggerFactory;
 
 @RequiresFullAccess
 public class StrategyRunner {
-    public static final Logger LOGGER = LoggerFactory.getLogger(StrategyRunner.class);
+    public static final Logger LOGGER = StrategyManager.LOGGER;
     private static String jnlpUrl = "http://platform.dukascopy.com/demo/jforex.jnlp";
 
     public static void run(final IStrategy strategy, String username, String password, boolean isLive) throws Exception {

@@ -35,7 +35,7 @@ public class SMASampleTrade implements IStrategy {
     public OfferSide myOfferSide;
     @Configurable(value="Period value")
     public Period myPeriod = Period.TEN_MINS;
-    @Configurable("SMA time period")
+    @Configurable("SMA time cPeriod")
     public int smaTimePeriod = 30;
 
 
@@ -47,7 +47,7 @@ public class SMASampleTrade implements IStrategy {
         this.indicators = context.getIndicators();
         this.userInterface = context.getUserInterface();
 
-        //subscribe an instrument:
+        //subscribe an cInstrument:
         Set<Instrument> instruments = new HashSet<Instrument>();
         instruments.add(myInstrument);
         context.setSubscribedInstruments(instruments, true);
@@ -76,7 +76,7 @@ public class SMASampleTrade implements IStrategy {
 
 
     /*
-     * Implement our business logic here. Filter specific instrument and period.
+     * Implement our business logic here. Filter specific cInstrument and cPeriod.
      * Get the order and check whether the order with the same label exists in open state,
      * if yes then close it. Make a decision and submit a new order.
      */

@@ -9,6 +9,7 @@ import com.dukascopy.api.system.ITesterClient;
 import com.dukascopy.api.system.ITesterClient.DataLoadingMethod;
 import com.dukascopy.api.system.ITesterReportData;
 import com.dukascopy.api.system.TesterFactory;
+import com.jforexcn.shared.lib.StrategyManager;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,7 +25,7 @@ import java.util.concurrent.Future;
  */
 @RequiresFullAccess
 public class StrategyTestRunner {
-    private static final Logger LOGGER = LoggerFactory.getLogger(StrategyTestRunner.class);
+    public static final Logger LOGGER = StrategyManager.LOGGER;
     private static String jnlpUrl = "http://platform.dukascopy.com/demo/jforex.jnlp";
 
     public static void run(final IStrategy strategy, String username, String password, String fromStr, String toStr) throws Exception {
@@ -106,7 +107,7 @@ public class StrategyTestRunner {
             System.exit(1);
         }
 
-        final SimpleDateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy");
+        final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
         dateFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
 
         Date dateFrom = dateFormat.parse(fromStr);

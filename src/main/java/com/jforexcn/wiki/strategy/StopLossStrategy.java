@@ -57,7 +57,7 @@ public class StopLossStrategy implements IStrategy {
     public OfferSide myOfferSide;
     @Configurable(value = "Period value")
     public Period myPeriod = Period.TEN_MINS;
-    @Configurable("SMA time period")
+    @Configurable("SMA time cPeriod")
     public int smaTimePeriod = 30;
     @Configurable("Add OHLC Index to chart")
     public boolean addOHLC = true;
@@ -287,7 +287,7 @@ public class StopLossStrategy implements IStrategy {
             return false;
         }
         if (chart.getSelectedPeriod() != this.myPeriod) {
-            printMeError("chart period is not " + this.myPeriod);
+            printMeError("chart cPeriod is not " + this.myPeriod);
             return false;
         }
         if (chart.getFilter() != this.filter) {
