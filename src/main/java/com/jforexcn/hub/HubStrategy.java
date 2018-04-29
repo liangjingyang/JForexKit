@@ -19,6 +19,7 @@ import com.dukascopy.api.feed.ITickBar;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -30,31 +31,10 @@ import java.util.Set;
 public class HubStrategy implements IStrategy, ITailoredFeedListener<ITickBar> {
 
     @Configurable("")
-    public Set<Instrument> instruments = new HashSet<Instrument>(
-            Arrays.asList(new Instrument[] {Instrument.EURUSD, Instrument.AUDCAD})
-    );
-
-    static class SubStrategyName {
-
-        public static final SubStrategyName STOP_LOSS_ONE = new SubStrategyName(StopLossOne.class.getSimpleName());
-        public static final SubStrategyName MY_OFFLINE_TRADES = new SubStrategyName(myOfflineTrades.class.getSimpleName());
-
-        public final String name;
-
-        public SubStrategyName(String name){
-            this.name = name;
-        }
-
-        @Override
-        public String toString(){
-            return name;
-        }
-    }
+    public Set<Instrument> instruments = new HashSet<Instrument>();
 
     @Configurable("")
-    public Set<SubStrategyName> subStrategyNames = new HashSet<SubStrategyName>(
-            Arrays.asList(new SubStrategyName[] {SubStrategyName.STOP_LOSS_ONE})
-    );
+    public Set<SubStrategyName> subStrategyNames = new HashSet<SubStrategyName>();
 
     private final HashMap<String, SubStrategy> supportedSubStrategies = new HashMap<>();
     private final Set<SubStrategy> subStrategies = new HashSet<>();
@@ -66,6 +46,42 @@ public class HubStrategy implements IStrategy, ITailoredFeedListener<ITickBar> {
 
     @Override
     public void onStart(IContext context) throws JFException {
+        HubConfiguration.load(context);
+        if (instruments.size() == 0) {
+            String configKey = HubConfiguration.getConfigKey(
+                    this.getClass().getSimpleName(),
+                    HubConfiguration.SINGLE_SCOPE,
+                    Instrument.class.getSimpleName(),
+                    "instruments");
+            Object instrumentList = HubConfiguration.getConfig(configKey);
+            if (instrumentList instanceof List) {
+                instruments.addAll((List<Instrument>) instrumentList);
+            }
+        }
+        context.getConsole().getInfo().println("=== HubStrategy Instruments Start ===");
+        for (Instrument instrument : instruments) {
+            context.getConsole().getInfo().println(instrument);
+        }
+        context.getConsole().getInfo().println("=== HubStrategy Instruments End ===");
+
+        if (subStrategyNames.size() == 0) {
+            String configKey = HubConfiguration.getConfigKey(
+                    this.getClass().getSimpleName(),
+                    HubConfiguration.SINGLE_SCOPE,
+                    SubStrategyName.class.getSimpleName(),
+                    "strategyNames");
+            Object strategyNameList = HubConfiguration.getConfig(configKey);
+            if (strategyNameList instanceof List) {
+                subStrategyNames.addAll((List<SubStrategyName>) strategyNameList);
+            }
+        }
+        context.getConsole().getInfo().println("=== HubStrategy Strategies Start ===");
+        for (SubStrategyName subStrategyName : subStrategyNames) {
+            context.getConsole().getInfo().println(subStrategyName);
+        }
+        context.getConsole().getInfo().println("=== HubStrategy Strategies End ===");
+
+
         for (SubStrategyName subStrategyName : subStrategyNames) {
             String name = subStrategyName.toString();
             if (supportedSubStrategies.containsKey(name)) {
@@ -125,6 +141,34 @@ public class HubStrategy implements IStrategy, ITailoredFeedListener<ITickBar> {
     public void onFeedData(ITailoredFeedDescriptor<ITickBar> feedDescriptor, ITickBar feedData) {
         for (SubStrategy subStrategy: subStrategies) {
             subStrategy.onFeedData(feedDescriptor, feedData);
+        }
+    }
+
+    public static class SubStrategyName {
+
+        public static final SubStrategyName STOP_LOSS_ONE = createSubStrategyName(StopLossOne.class.getSimpleName());
+        public static final SubStrategyName MY_OFFLINE_TRADES = createSubStrategyName(myOfflineTrades.class.getSimpleName());
+
+        public static final HashMap<String, SubStrategyName> INSTANCES = new HashMap<>();
+        public final String name;
+
+        public SubStrategyName(String name){
+            this.name = name;
+        }
+
+        @Override
+        public String toString(){
+            return name;
+        }
+
+        public static SubStrategyName createSubStrategyName(String name) {
+            SubStrategyName subStrategyName = new SubStrategyName(name);
+            INSTANCES.put(name, subStrategyName);
+            return subStrategyName;
+        }
+
+        public static SubStrategyName valueOf(String name) {
+            return INSTANCES.get(name);
         }
     }
 }

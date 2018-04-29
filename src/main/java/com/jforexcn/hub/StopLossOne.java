@@ -24,9 +24,30 @@ public class StopLossOne extends SubStrategy {
 
     private static String STRATEGY_TAG = StopLossOne.class.getSimpleName();
 
-    private static double MAX_STOP_LOSS_PIPS = 100;
-    private static int SPREADS = 5;
+    private int getMaxStopLossPips(Instrument instrument) throws JFException {
+        return getConfig(instrument.toString(), "maxStopLossPips", Integer.class);
+    }
 
+    private int getSpreads(Instrument instrument) throws JFException {
+        return getConfig(instrument.toString(), "spreads", Integer.class);
+    }
+
+    private double getRrForBreakEven() throws JFException {
+        return getConfig("rrForBreakEven", Double.class);
+    }
+
+
+    private int getTrailingStopLossPips(Instrument instrument) throws JFException {
+        return getConfig(instrument.toString(), "trailingStopLossPips", Integer.class);
+    }
+
+    private double getTrailingSpeed() throws JFException {
+        return getConfig("trailingSpeed", Double.class);
+    }
+
+    private int getMinTrailingPips(Instrument instrument) throws JFException {
+        return getConfig(instrument.toString(), "minTrailingPips", Integer.class);
+    }
 
     @Override
     public void onStart(IContext context) throws JFException {
@@ -45,10 +66,10 @@ public class StopLossOne extends SubStrategy {
             // 没有止损的订单必须设置止损,
             for (IOrder order : getFilledOrdersWithoutStopLossByInstrument(instrument)) {
                 if (IEngine.OrderCommand.BUY.equals(order.getOrderCommand())) {
-                    helper.setStopLossPrice(order, bidBar.getClose() - MAX_STOP_LOSS_PIPS * instrument.getPipValue());
+                    helper.setStopLossPrice(order, bidBar.getClose() - getMaxStopLossPips(instrument) * instrument.getPipValue());
                     helper.logDebug("Set MAX stop loss BUY id:" + order.getId() + ", cInstrument:" + instrument);
                 } else if (IEngine.OrderCommand.SELL.equals(order.getOrderCommand())) {
-                    helper.setStopLossPrice(order, askBar.getClose() + MAX_STOP_LOSS_PIPS * instrument.getPipValue());
+                    helper.setStopLossPrice(order, askBar.getClose() + getMaxStopLossPips(instrument) * instrument.getPipValue());
                     helper.logDebug("Set MAX stop loss SELL id:" + order.getId() + ", cInstrument:" + instrument);
                 }
             }
@@ -130,23 +151,23 @@ public class StopLossOne extends SubStrategy {
                     // 有止损的, 止损劣于入场价格的, 如果达到一定盈利, 就把止损移动到入场价格
                     double lossPrice;
                     for (IOrder order : getFilledOrdersWithStopLossByInstrument(instrument)) {
-                        if (feedDescriptor.getOfferSide().equals(OfferSide.ASK) &&
+                        if (feedDescriptor.getOfferSide().equals(OfferSide.BID) &&
                                 IEngine.OrderCommand.BUY.equals(order.getOrderCommand())) {
                             lossPrice = order.getOpenPrice() - order.getStopLossPrice();
                             if (lossPrice > 0) {
-                                double spreadsPrice = SPREADS * instrument.getPipValue();
-                                if (tickBar.getClose() > order.getOpenPrice() + lossPrice + spreadsPrice) {
+                                double spreadsPrice = getSpreads(instrument) * instrument.getPipValue();
+                                if (tickBar.getClose() > order.getOpenPrice() + lossPrice * getRrForBreakEven() + spreadsPrice) {
                                     helper.setStopLossPrice(order, order.getOpenPrice() + spreadsPrice);
                                     helper.logDebug("Set Stop Loss to Open Price BUY id:" + order.getId() + ", cInstrument:" + instrument);
                                 }
                             }
 
-                        } else if (feedDescriptor.getOfferSide().equals(OfferSide.BID) &&
+                        } else if (feedDescriptor.getOfferSide().equals(OfferSide.ASK) &&
                                 IEngine.OrderCommand.SELL.equals(order.getOrderCommand())) {
                             lossPrice = (order.getStopLossPrice() - order.getOpenPrice());
                             if (lossPrice > 0) {
-                                double spreadsPrice = SPREADS * instrument.getPipValue();
-                                if (tickBar.getClose() < order.getOpenPrice() - lossPrice - spreadsPrice) {
+                                double spreadsPrice = getSpreads(instrument) * instrument.getPipValue();
+                                if (tickBar.getClose() < order.getOpenPrice() - lossPrice * getRrForBreakEven() - spreadsPrice) {
                                     helper.setStopLossPrice(order, order.getOpenPrice() - spreadsPrice);
                                     helper.logDebug("Set Stop Loss to Open Price SELL id:" + order.getId() + ", cInstrument:" + instrument);
                                 }
@@ -155,34 +176,40 @@ public class StopLossOne extends SubStrategy {
                     }
                 } else if (feedDescriptor.getTickBarSize().getSize() == FeedDescriptors.TICK_BAR_SIZE_LARGE) {
                     // 有止损价格的, 并且止损价高于开仓价格的, 移动止损: 2/3个10日ATR
-                    double half_atr;
+                    double trailingSLValue = getTrailingStopLossPips(instrument)  * instrument.getPipValue();
+                    double minTrailingValue = getMinTrailingPips(instrument) * instrument.getPipValue();
                     double stopLossPrice;
                     for (IOrder order : getFilledOrdersWithStopLossByInstrument(instrument)) {
-                        if (feedDescriptor.getOfferSide().equals(OfferSide.ASK) &&
+                        if (feedDescriptor.getOfferSide().equals(OfferSide.BID) &&
                                 IEngine.OrderCommand.BUY.equals(order.getOrderCommand()) &&
                                 order.getOpenPrice() <= order.getStopLossPrice()) {
-                            half_atr = helper.scalePrice(mIndicators.atr(instrument, Period.DAILY, OfferSide.BID, 10, 0) / 3 * 2, instrument.getPipScale());
-                            if (tickBar.getClose() > order.getStopLossPrice() + half_atr) {
-                                stopLossPrice = tickBar.getClose() - half_atr;
-                                helper.logDebug("1000tick bar BUY1 cInstrument: " + instrument + ", order.label: " + order.getLabel() + ", half_atr: " + half_atr + ", stopLossPrice: " + stopLossPrice + "close: " + tickBar.getClose() + ", open " + tickBar.getOpen());
+                            if (tickBar.getClose() > order.getStopLossPrice() + trailingSLValue) {
+                                stopLossPrice = tickBar.getClose() - trailingSLValue;
+                                helper.logDebug("1000tick bar BUY1 cInstrument: " + instrument + ", order.label: " + order.getLabel() + ", half_atr: " + trailingSLValue + ", stopLossPrice: " + stopLossPrice + "close: " + tickBar.getClose() + ", open " + tickBar.getOpen());
                                 helper.setStopLossPrice(order, stopLossPrice);
                             } else if (tickBar.getClose() > tickBar.getOpen()) {
-                                stopLossPrice = order.getStopLossPrice() + (tickBar.getClose() - tickBar.getOpen()) / 2;
-                                helper.logDebug("1000tick bar BUY2 cInstrument: " + instrument + ", order.label: " + order.getLabel() + ", half_atr: " + half_atr + ", stopLossPrice: " + stopLossPrice + "close: " + tickBar.getClose() + ", open " + tickBar.getOpen());
-                                helper.setStopLossPrice(order, stopLossPrice);
+                                double trailingValue = (tickBar.getClose() - tickBar.getOpen()) * getTrailingSpeed();
+                                if (trailingValue > minTrailingValue) {
+                                    stopLossPrice = order.getStopLossPrice() + trailingValue;
+                                    helper.logDebug("1000tick bar BUY2 cInstrument: " + instrument + ", order.label: " + order.getLabel() + ", half_atr: " + trailingSLValue + ", stopLossPrice: " + stopLossPrice + "close: " + tickBar.getClose() + ", open " + tickBar.getOpen());
+                                    helper.setStopLossPrice(order, stopLossPrice);
+                                }
                             }
-                        } else if (feedDescriptor.getOfferSide().equals(OfferSide.BID) &&
+                        } else if (feedDescriptor.getOfferSide().equals(OfferSide.ASK) &&
                                 IEngine.OrderCommand.SELL.equals(order.getOrderCommand()) &&
                                 order.getOpenPrice() >= order.getStopLossPrice()) {
-                            half_atr = helper.scalePrice(mIndicators.atr(instrument, Period.DAILY, OfferSide.BID, 10, 0) / 3 * 2, instrument.getPipScale());
-                            if (tickBar.getClose() < order.getStopLossPrice() - half_atr) {
-                                stopLossPrice = tickBar.getClose() + half_atr;
-                                helper.logDebug("1000tick SELL1 cInstrument: " + instrument + ", order.label: " + order.getLabel() + ", half_atr: " + half_atr + ", stopLossPrice: " + stopLossPrice + "close: " + tickBar.getClose() + ", open " + tickBar.getOpen());
+                            if (tickBar.getClose() < order.getStopLossPrice() - trailingSLValue) {
+                                stopLossPrice = tickBar.getClose() + trailingSLValue;
+                                helper.logDebug("1000tick SELL1 cInstrument: " + instrument + ", order.label: " + order.getLabel() + ", half_atr: " + trailingSLValue + ", stopLossPrice: " + stopLossPrice + "close: " + tickBar.getClose() + ", open " + tickBar.getOpen());
                                 helper.setStopLossPrice(order, stopLossPrice);
-                            } else if (tickBar.getClose() < tickBar.getOpen()) {
-                                stopLossPrice = order.getStopLossPrice() + (tickBar.getClose() - tickBar.getOpen()) / 2;
-                                helper.logDebug("1000tick bar SELL2 cInstrument: " + instrument + ", order.label: " + order.getLabel() + ", half_atr: " + half_atr + ", stopLossPrice: " + stopLossPrice + "close: " + tickBar.getClose() + ", open " + tickBar.getOpen());
-                                helper.setStopLossPrice(order, stopLossPrice);
+                            } else if (tickBar.getClose() < tickBar.getOpen() && tickBar.getOpen() - tickBar.getClose() > minTrailingValue) {
+                                double trailingValue = (tickBar.getOpen() - tickBar.getClose()) * getTrailingSpeed();
+                                if (trailingValue > minTrailingValue) {
+                                    stopLossPrice = order.getStopLossPrice() - trailingValue;
+                                    helper.logDebug("1000tick bar SELL2 cInstrument: " + instrument + ", order.label: " + order.getLabel() + ", half_atr: " + trailingSLValue + ", stopLossPrice: " + stopLossPrice + "close: " + tickBar.getClose() + ", open " + tickBar.getOpen());
+                                    helper.setStopLossPrice(order, stopLossPrice);
+                                }
+
                             }
                         }
                     }

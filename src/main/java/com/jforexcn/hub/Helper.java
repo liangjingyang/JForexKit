@@ -33,7 +33,7 @@ public class Helper {
     private HashMap<String, Long> submitTimeMap = new HashMap<>();
     private HashMap<String, Long> filledTimeMap = new HashMap<>();
 
-    String strategyTag;
+    String strategyTag = "";
     IContext mContext;
     IHistory mHistory;
     IAccount mAccount;
@@ -41,7 +41,7 @@ public class Helper {
     IConsole mConsole;
     JFUtils mUtils;
 
-    boolean debug = true;
+    boolean debug = false;
 
     SimpleDateFormat mSimpleDateFormat = new SimpleDateFormat("yyyy_MM_dd_HH_mm_ss");
 
@@ -55,6 +55,7 @@ public class Helper {
         this.mUtils = context.getUtils();
         // date format
         mSimpleDateFormat.setTimeZone(TimeZone.getTimeZone("GTM"));
+        this.debug = mEngine.getType().equals(IEngine.Type.TEST);
     }
 
     public void addInstrument(Instrument instrument) {
@@ -151,17 +152,17 @@ public class Helper {
     }
 
     public void logInfo(String str) {
-        mConsole.getInfo().println(str);
+        mConsole.getInfo().println(strategyTag + "  " + str);
 //            StrategyRunner.LOGGER.info(str);
     }
 
     public void logError(String str) {
-        mConsole.getErr().println(str);
+        mConsole.getErr().println(strategyTag + "  " + str);
     }
 
     public void logDebug(String str) {
         if (debug) {
-            mConsole.getInfo().println("== DEBUG == " + str);
+            mConsole.getInfo().println("== DEBUG == " + strategyTag + "  " + str);
         }
     }
 
