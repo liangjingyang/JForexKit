@@ -1,4 +1,4 @@
-package com.jforexcn.hub;
+package com.jforexcn.hub.lib;
 
 import com.dukascopy.api.Instrument;
 import com.dukascopy.api.OfferSide;
@@ -334,7 +334,7 @@ public class FeedDescriptors {
 
 
 
-    private static ITailoredFeedDescriptor<ITickBar> createTickBarFeedDescriptor(Instrument instrument, TickBarSize tickBarSize, OfferSide offerSide) {
+    public static ITailoredFeedDescriptor<ITickBar> createTickBarFeedDescriptor(Instrument instrument, TickBarSize tickBarSize, OfferSide offerSide) {
         ITailoredFeedDescriptor<ITickBar> descriptor = new TickBarFeedDescriptor(
                 instrument,
                 tickBarSize,

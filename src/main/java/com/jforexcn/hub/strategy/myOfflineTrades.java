@@ -1,4 +1,4 @@
-package com.jforexcn.hub;
+package com.jforexcn.hub.strategy;
 
 /**
  * Created by simple(simple.continue@gmail.com) on 26/04/2018.
@@ -19,14 +19,11 @@ package com.jforexcn.hub;
 
 import com.dukascopy.api.IAccount;
 import com.dukascopy.api.IBar;
-import com.dukascopy.api.IConsole;
 import com.dukascopy.api.IContext;
 import com.dukascopy.api.IEngine;
 import com.dukascopy.api.IEngine.OrderCommand;
-import com.dukascopy.api.IHistory;
 import com.dukascopy.api.IMessage;
 import com.dukascopy.api.IOrder;
-import com.dukascopy.api.IStrategy;
 import com.dukascopy.api.ITick;
 import com.dukascopy.api.Instrument;
 import com.dukascopy.api.JFException;

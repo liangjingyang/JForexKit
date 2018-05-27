@@ -16,7 +16,15 @@ import com.dukascopy.api.feed.ITailoredFeedDescriptor;
 import com.dukascopy.api.feed.ITailoredFeedListener;
 import com.dukascopy.api.feed.ITickBar;
 
-import java.util.Arrays;
+import com.jforexcn.hub.lib.FeedDescriptors;
+import com.jforexcn.hub.lib.HubConfiguration;
+import com.jforexcn.hub.strategy.NotificationCenter;
+import com.jforexcn.hub.strategy.OpenOrderTwo;
+import com.jforexcn.hub.strategy.StopLossOne;
+import com.jforexcn.hub.strategy.StopLossTwo;
+import com.jforexcn.hub.strategy.SubStrategy;
+import com.jforexcn.hub.strategy.myOfflineTrades;
+
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -36,17 +44,29 @@ public class HubStrategy implements IStrategy, ITailoredFeedListener<ITickBar> {
     @Configurable("")
     public Set<SubStrategyName> subStrategyNames = new HashSet<SubStrategyName>();
 
-    private final HashMap<String, SubStrategy> supportedSubStrategies = new HashMap<>();
+    @Configurable("")
+    public boolean reloadConfig = true;
+
+    private final HashMap<String, Class<? extends SubStrategy>> supportedSubStrategies = new HashMap<>();
+    private final HashMap<String, SubStrategy> singleSubStrategies = new HashMap<>();
     private final Set<SubStrategy> subStrategies = new HashSet<>();
 
+    private IContext mContext;
+    private Instrument defaultInstrument = Instrument.EURUSD;
+
     public HubStrategy() {
-        supportedSubStrategies.put(StopLossOne.class.getSimpleName(), new StopLossOne());
-        supportedSubStrategies.put(myOfflineTrades.class.getSimpleName(), new myOfflineTrades());
+        supportedSubStrategies.put(StopLossOne.class.getSimpleName(), StopLossOne.class);
+        supportedSubStrategies.put(StopLossTwo.class.getSimpleName(), StopLossTwo.class);
+        supportedSubStrategies.put(OpenOrderTwo.class.getSimpleName(), OpenOrderTwo.class);
+        singleSubStrategies.put(NotificationCenter.class.getSimpleName(), new NotificationCenter());
+        singleSubStrategies.put(myOfflineTrades.class.getSimpleName(), new myOfflineTrades());
     }
 
     @Override
     public void onStart(IContext context) throws JFException {
+        mContext = context;
         HubConfiguration.load(context);
+        HubConfiguration.printConfig(context);
         if (instruments.size() == 0) {
             String configKey = HubConfiguration.getConfigKey(
                     this.getClass().getSimpleName(),
@@ -58,6 +78,9 @@ public class HubStrategy implements IStrategy, ITailoredFeedListener<ITickBar> {
                 instruments.addAll((List<Instrument>) instrumentList);
             }
         }
+
+        defaultInstrument = (Instrument) instruments.toArray()[0];
+
         context.getConsole().getInfo().println("=== HubStrategy Instruments Start ===");
         for (Instrument instrument : instruments) {
             context.getConsole().getInfo().println(instrument);
@@ -84,10 +107,24 @@ public class HubStrategy implements IStrategy, ITailoredFeedListener<ITickBar> {
 
         for (SubStrategyName subStrategyName : subStrategyNames) {
             String name = subStrategyName.toString();
-            if (supportedSubStrategies.containsKey(name)) {
-                SubStrategy subStrategy = supportedSubStrategies.get(name);
+            if (singleSubStrategies.containsKey(name)) {
+                SubStrategy subStrategy = singleSubStrategies.get(name);
+                subStrategy.setFromHub(true);
                 subStrategy.addInstruments(instruments);
                 subStrategies.add(subStrategy);
+            }
+            if (supportedSubStrategies.containsKey(name)) {
+                Class<? extends SubStrategy> subStrategyClass = supportedSubStrategies.get(name);
+                for (Instrument instrument : instruments) {
+                    try {
+                        SubStrategy subStrategy = subStrategyClass.newInstance();
+                        subStrategy.setFromHub(true);
+                        subStrategy.setInstrument(instrument);
+                        subStrategies.add(subStrategy);
+                    } catch (Exception e) {
+                      throw new JFException(e);
+                    }
+                }
             }
         }
 
@@ -111,6 +148,11 @@ public class HubStrategy implements IStrategy, ITailoredFeedListener<ITickBar> {
 
     @Override
     public void onBar(Instrument instrument, Period period, IBar askBar, IBar bidBar) throws JFException {
+        if (reloadConfig &&
+                instrument.equals(defaultInstrument) &&
+                (Period.TEN_MINS.equals(period) || Period.ONE_HOUR.equals(period))) {
+            HubConfiguration.load(mContext);
+        }
         for (SubStrategy subStrategy: subStrategies) {
             subStrategy.onBar(instrument, period, askBar, bidBar);
         }
@@ -145,11 +187,14 @@ public class HubStrategy implements IStrategy, ITailoredFeedListener<ITickBar> {
     }
 
     public static class SubStrategyName {
+        public static final HashMap<String, SubStrategyName> INSTANCES = new HashMap<>();
 
         public static final SubStrategyName STOP_LOSS_ONE = createSubStrategyName(StopLossOne.class.getSimpleName());
+        public static final SubStrategyName STOP_LOSS_TWO = createSubStrategyName(StopLossTwo.class.getSimpleName());
+        public static final SubStrategyName NOTIFICATION_CENTER = createSubStrategyName(NotificationCenter.class.getSimpleName());
         public static final SubStrategyName MY_OFFLINE_TRADES = createSubStrategyName(myOfflineTrades.class.getSimpleName());
+        public static final SubStrategyName OPEN_ORDER_TWO = createSubStrategyName(OpenOrderTwo.class.getSimpleName());
 
-        public static final HashMap<String, SubStrategyName> INSTANCES = new HashMap<>();
         public final String name;
 
         public SubStrategyName(String name){

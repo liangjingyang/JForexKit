@@ -1,4 +1,4 @@
-package com.jforexcn.shared.strategy;
+package com.jforexcn.hub.strategy;
 
 /**
  * Created by simple on 19/10/16.
@@ -6,63 +6,42 @@ package com.jforexcn.shared.strategy;
 
 import com.dukascopy.api.IAccount;
 import com.dukascopy.api.IBar;
-import com.dukascopy.api.IConsole;
 import com.dukascopy.api.IContext;
-import com.dukascopy.api.IEngine;
-import com.dukascopy.api.IHistory;
-import com.dukascopy.api.IIndicators;
 import com.dukascopy.api.IMessage;
 import com.dukascopy.api.IOrder;
-import com.dukascopy.api.IStrategy;
 import com.dukascopy.api.ITick;
 import com.dukascopy.api.Instrument;
 import com.dukascopy.api.JFException;
 import com.dukascopy.api.Period;
-import com.jforexcn.shared.lib.MailService;
 
-import com.jforexcn.shared.client.StrategyRunner;
-
-import java.text.SimpleDateFormat;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
-import java.util.TimeZone;
 
-public class OrderWatcher implements IStrategy {
-
-
-    private IEngine mEngine;
-    private IConsole mConsole;
-    private IIndicators mIndicators;
-    private IHistory mHistory;
-
-    private Set<Instrument> mInstrumentSet = new HashSet<Instrument>();
-
-    SimpleDateFormat mSimpleDateFormat = new SimpleDateFormat("yyyy_MM_dd_HH_mm_ss");
-
+public class NotificationCenter extends SubStrategy {
     private static String STRATEGY_TAG = "NotificationCenter";
+    private Map<Instrument, ITick> lastTicks = new HashMap<>();
+    private Set<Instrument> upFinishedInstruments = new HashSet<>();
+    private Set<Instrument> downFinishedInstruments = new HashSet<>();
+
+    private String getEmail() throws JFException {
+        return getConfig("email", String.class);
+    }
+
+    private double getUpWatermark(Instrument instrument) throws JFException {
+        return getConfig(instrument.toString(), "upWatermark", Double.class);
+    }
+
+    private double getDownWatermark(Instrument instrument) throws JFException {
+        return getConfig(instrument.toString(), "downWatermark", Double.class);
+    }
 
     @Override
     public void onStart(IContext context) throws JFException {
-        this.mEngine = context.getEngine();
-        this.mConsole = context.getConsole();
-        this.mIndicators = context.getIndicators();
-        this.mHistory = context.getHistory();
-
-        // subscribe instruments
-        mInstrumentSet.add(Instrument.EURUSD);
-        mInstrumentSet.add(Instrument.USDJPY);
-        mInstrumentSet.add(Instrument.XAUUSD);
-        mInstrumentSet.add(Instrument.GBPUSD);
-        mInstrumentSet.add(Instrument.AUDUSD);
-        mInstrumentSet.add(Instrument.USDCAD);
-        mInstrumentSet.add(Instrument.USDCHF);
-        mInstrumentSet.add(Instrument.NZDUSD);
-        mInstrumentSet.add(Instrument.GBPAUD);
-        mInstrumentSet.add(Instrument.GBPJPY);
-        context.setSubscribedInstruments(mInstrumentSet, true);
-
-        // date format
-        mSimpleDateFormat.setTimeZone(TimeZone.getTimeZone("GTM"));
+        init(context, STRATEGY_TAG);
+        helper.setMailTo(getEmail());
+        helper.logDebug(STRATEGY_TAG + " start!");
     }
 
     @Override
@@ -79,7 +58,7 @@ public class OrderWatcher implements IStrategy {
                     handleMessage(message, order);
                 } else {
                     // all rejected status should handle on their strategy
-                    puts("onMessage other type: " + message.getType().toString() +
+                    helper.logDebug("onMessage other type: " + message.getType().toString() +
                             ", content: " + message.getContent());
                 }
             }
@@ -87,17 +66,34 @@ public class OrderWatcher implements IStrategy {
             throw e;
         } catch (Exception e) {
             e.printStackTrace();
-            sendEmail("CRASH! " + STRATEGY_TAG, "OnMessage exception: " + e.getMessage());
+            helper.sendMail("CRASH! " + STRATEGY_TAG, "OnMessage exception: " + e.getMessage());
         }
     }
     @Override
     public void onStop() throws JFException {
-        puts(STRATEGY_TAG + " OnStop!");
-        sendEmail(STRATEGY_TAG + " OnStop!", "");
+        helper.sendMail(STRATEGY_TAG + " OnStop!", "");
     }
 
     @Override
     public void onTick(Instrument instrument, ITick tick) throws JFException {
+        ITick lastTick = lastTicks.get(instrument);
+        if (lastTick != null) {
+            double upWatermark = getUpWatermark(instrument);
+            double downWatermark = getDownWatermark(instrument);
+            if (!upFinishedInstruments.contains(instrument) &&
+                    tick.getAsk() >= upWatermark &&
+                    lastTick.getAsk() < upWatermark) {
+                helper.sendMail("Up Break " + instrument.toString() + " Ask: " + tick.getAsk(), "");
+                upFinishedInstruments.add(instrument);
+            }
+            if (!downFinishedInstruments.contains(instrument) &&
+                    tick.getBid() <= downWatermark &&
+                    lastTick.getBid() > downWatermark) {
+                helper.sendMail("Down Break " + instrument.toString() + " Bid: " + tick.getBid(), "");
+                downFinishedInstruments.add(instrument);
+            }
+        }
+        lastTicks.put(instrument, tick);
     }
 
     @Override
@@ -108,17 +104,8 @@ public class OrderWatcher implements IStrategy {
     public void onAccount(IAccount account) throws JFException {
     }
 
-    private void puts(String str) {
-//        mConsole.getInfo().println(str);
-        StrategyRunner.LOGGER.info(str);
-    }
-
-    private void sendEmail(String subject, String body) {
-        MailService.sendMail(subject, body);
-    }
-
     private void handleMessage(IMessage message, IOrder order) throws JFException {
-        sendEmail(getOrderSubject(message, order), getOrdersSummary());
+        helper.sendMail(getOrderSubject(message, order), getOrdersSummary());
     }
 
     private String getOrderSubject(IMessage message, IOrder order) {

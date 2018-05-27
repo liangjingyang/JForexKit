@@ -12,6 +12,7 @@ plugins {
     id 'org.hidetake.ssh' version '2.9.0'
 }
 
+
 apply plugin: 'java'
 apply plugin: 'maven-publish'
 apply plugin: 'biz.aQute.bnd.builder'
@@ -34,6 +35,7 @@ publishing {
 }
 
 dependencies {
+    compile 'org.nanohttpd:nanohttpd:2.2.0'
     compile 'org.reflections:reflections:0.9.11'
     compile 'org.apache.commons:commons-email:1.4'
     compile 'com.dukascopy.dds2:DDS2-jClient-JForex:3.3.0'
@@ -124,19 +126,45 @@ task showPlatformVersion() {
         ssh.run {
             session(remotes.server) {
                 execute 'uname -a'
-                execute 'cat /etc/*-release', ignoreError: true
+                execute 'ifconfig', ignoreError: true
             }
         }
     }
 }
 
-task deploy(dependsOn: ':uberJar') {
+task deployAll(dependsOn: ':uberJar') {
     doLast {
         if (project.hasProperty('remoteHost')) {
             ssh.run {
                 session(remotes.server) {
                     put from: "${project.buildDir}/libs/${jar.archiveName}", into: "${remotePath}/"
                     put from: "${project.rootDir}/JForexKit.properties", into: "${remotePath}/"
+                    put from: "${project.rootDir}/HubStrategy.properties", into: "${remotePath}/"
+                }
+            }
+        }
+    }
+}
+
+task deployJar(dependsOn: ':uberJar') {
+    doLast {
+        if (project.hasProperty('remoteHost')) {
+            ssh.run {
+                session(remotes.server) {
+                    put from: "${project.buildDir}/libs/${jar.archiveName}", into: "${remotePath}/"
+                }
+            }
+        }
+    }
+}
+
+task deployConfig() {
+    doLast {
+        if (project.hasProperty('remoteHost')) {
+            ssh.run {
+                session(remotes.server) {
+                    put from: "${project.rootDir}/JForexKit.properties", into: "${remotePath}/"
+                    put from: "${project.rootDir}/HubStrategy.properties", into: "${remotePath}/"
                 }
             }
         }

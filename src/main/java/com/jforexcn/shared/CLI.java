@@ -1,6 +1,7 @@
 package com.jforexcn.shared;
 
 import com.dukascopy.api.IStrategy;
+import com.jforexcn.hub.HubStrategy;
 import com.jforexcn.shared.lib.MailService;
 import com.jforexcn.shared.lib.StrategyManager;
 import com.jforexcn.shared.client.StrategyTestRunner;
@@ -40,6 +41,8 @@ public class CLI {
         for (Class<? extends IStrategy> strategy : allStrategies) {
             StrategyManager.register(strategy.getSimpleName(), strategy);
         }
+
+        StrategyManager.register(HubStrategy.class.getSimpleName(), HubStrategy.class);
 
         if (args == null || args.length == 0) {
             printHelp();

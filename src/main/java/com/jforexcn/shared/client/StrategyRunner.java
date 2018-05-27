@@ -32,14 +32,14 @@ public class StrategyRunner {
             @Override
             public void onStart(long processId) {
                 LOGGER.info("Strategy started: " + processId);
-                MailService.sendMail("Congratulation!!! Strategy Started!",
+                MailService.sendMail("Congratulation!!! " + strategy.getClass().getSimpleName() + " Started!",
                         "ProcessId: " + processId);
             }
 
             @Override
             public void onStop(long processId) {
                 LOGGER.info("Strategy stopped: " + processId);
-                MailService.sendMail("DOWN!!! Strategy Stopped!",
+                MailService.sendMail("DOWN!!! " + strategy.getClass().getSimpleName() + " Stopped!",
                         "ProcessId: " + processId);
                 if (client.getStartedStrategies().size() == 0) {
                     System.exit(0);

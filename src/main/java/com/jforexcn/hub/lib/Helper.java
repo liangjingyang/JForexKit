@@ -1,16 +1,18 @@
-package com.jforexcn.hub;
+package com.jforexcn.hub.lib;
 
 import com.dukascopy.api.IAccount;
 import com.dukascopy.api.IConsole;
 import com.dukascopy.api.IContext;
 import com.dukascopy.api.IEngine;
 import com.dukascopy.api.IHistory;
+import com.dukascopy.api.IIndicators;
+import com.dukascopy.api.IMessage;
 import com.dukascopy.api.IOrder;
 import com.dukascopy.api.Instrument;
 import com.dukascopy.api.JFException;
 import com.dukascopy.api.JFUtils;
 import com.dukascopy.api.OfferSide;
-import com.dukascopy.api.TickBarSize;
+import com.dukascopy.api.util.IEmailResponse;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -19,6 +21,8 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.TimeZone;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Created by simple(simple.continue@gmail.com) on 26/04/2018.
@@ -32,14 +36,18 @@ public class Helper {
     private Set<Instrument> instrumentSet = new HashSet<Instrument>();
     private HashMap<String, Long> submitTimeMap = new HashMap<>();
     private HashMap<String, Long> filledTimeMap = new HashMap<>();
+    private HashMap<Object, Integer> theCounter = new HashMap<>();
+    private String mailTo;
+    private long orderSubmitInterval = 60 * 1000;
 
-    String strategyTag = "";
-    IContext mContext;
-    IHistory mHistory;
-    IAccount mAccount;
-    IEngine mEngine;
-    IConsole mConsole;
-    JFUtils mUtils;
+    public String strategyTag = "";
+    public IContext mContext;
+    public IHistory mHistory;
+    public IAccount mAccount;
+    public IEngine mEngine;
+    public IConsole mConsole;
+    public JFUtils mUtils;
+    public IIndicators mIndicators;
 
     boolean debug = false;
 
@@ -53,9 +61,54 @@ public class Helper {
         this.mEngine = context.getEngine();
         this.mConsole = context.getConsole();
         this.mUtils = context.getUtils();
+        this.mIndicators = context.getIndicators();
         // date format
         mSimpleDateFormat.setTimeZone(TimeZone.getTimeZone("GTM"));
         this.debug = mEngine.getType().equals(IEngine.Type.TEST);
+    }
+
+    public void onMessage(IMessage message) throws JFException {
+        IOrder order = message.getOrder();
+        if (order != null) {
+            removeOrderProcessing(order.getId());
+        }
+        if (IMessage.Type.ORDER_SUBMIT_REJECTED.equals(message.getType())) {
+        } else if (IMessage.Type.ORDER_SUBMIT_OK.equals(message.getType())) {
+        } else if (IMessage.Type.ORDER_FILL_REJECTED.equals(message.getType())) {
+            addCounter(message.getType());
+            checkAndResetCounter(message.getType(), 5);
+        } else if (IMessage.Type.ORDER_FILL_OK.equals(message.getType())) {
+        } else if (IMessage.Type.ORDER_CHANGED_REJECTED.equals(message.getType())) {
+            addCounter(message.getType());
+            checkAndResetCounter(message.getType(), 5);
+        } else if (IMessage.Type.ORDER_CHANGED_OK.equals(message.getType())) {
+        } else if (IMessage.Type.ORDER_CLOSE_REJECTED.equals(message.getType())) {
+            addCounter(message.getType());
+            checkAndResetCounter(message.getType(), 5);
+        } else if (IMessage.Type.ORDER_CLOSE_OK.equals(message.getType())) {
+        }
+    }
+
+    public void addCounter(Object obj) {
+        if (theCounter.containsKey(obj)) {
+            theCounter.put(obj, theCounter.get(obj) + 1);
+        } else {
+            theCounter.put(obj, 1);
+        }
+    }
+
+    public void checkAndResetCounter(Object obj, int waterMark) {
+        if (theCounter.containsKey(obj)) {
+            int count = theCounter.get(obj);
+            if (count >= waterMark) {
+                sendEmail(strategyTag + " " + obj.toString() + " reaches " + waterMark, "");
+                theCounter.put(obj, 0);
+            }
+        }
+    }
+
+    public void setMailTo(String mailTo) {
+        this.mailTo = mailTo;
     }
 
     public void addInstrument(Instrument instrument) {
@@ -199,12 +252,44 @@ public class Helper {
         if (lastSubmitTime == null) {
             lastSubmitTime = 0L;
         }
-        if (time - lastSubmitTime > 60 * 1000) {
+        if (time - lastSubmitTime > orderSubmitInterval) {
             mEngine.submitOrder(label, instrument, orderCommand, amount, price, slippage);
             submitTimeMap.put(instrument + "#" + orderCommand, time);
         }
     }
 
+    /**
+     * allow only one order per cInstrument one minute.
+     */
+    public void submitOrder(String label, Instrument instrument, IEngine.OrderCommand orderCommand,
+                            double amount, double price, double slippage, double stopLossPrice,
+                            double takeProfitPrice, long time) throws JFException {
+        Long lastSubmitTime = submitTimeMap.get(instrument + "#" + orderCommand);
+        if (lastSubmitTime == null) {
+            lastSubmitTime = 0L;
+        }
+        if (time - lastSubmitTime > orderSubmitInterval) {
+            mEngine.submitOrder(label, instrument, orderCommand, amount, price, slippage, stopLossPrice, takeProfitPrice);
+            submitTimeMap.put(instrument + "#" + orderCommand, time);
+        }
+    }
+
+
+    /**
+     * allow only one order per cInstrument one minute.
+     */
+    public void submitOrder(String label, Instrument instrument, IEngine.OrderCommand orderCommand,
+                            double amount, double price, double slippage, double stopLossPrice,
+                            double takeProfitPrice, long goodTillTime, long time) throws JFException {
+        Long lastSubmitTime = submitTimeMap.get(instrument + "#" + orderCommand);
+        if (lastSubmitTime == null) {
+            lastSubmitTime = 0L;
+        }
+        if (time - lastSubmitTime > orderSubmitInterval) {
+            mEngine.submitOrder(label, instrument, orderCommand, amount, price, slippage, stopLossPrice, takeProfitPrice, goodTillTime);
+            submitTimeMap.put(instrument + "#" + orderCommand, time);
+        }
+    }
 
     /**
      * To ensure only one request per order
@@ -329,6 +414,29 @@ public class Helper {
 
     private String getOrderProcessingKey(String orderId, String action) {
         return orderId + "@" + action;
+    }
+
+    public void sendMail(String subject, String content) {
+        if (mailTo != null) {
+            try {
+                // Note: not to hold up the strategy execution, consider calling the sending logic from another thread
+                Future<IEmailResponse> future = mUtils.sendMail(mailTo, subject, content);
+                IEmailResponse response = future.get(30, TimeUnit.SECONDS);
+                if (response.isError()) {
+                    logError(response.toString());
+                }
+            } catch (Exception e) {
+                e.printStackTrace(mConsole.getErr());
+            }
+        }
+    }
+
+    public long getOrderSubmitInterval() {
+        return orderSubmitInterval;
+    }
+
+    public void setOrderSubmitInterval(long orderSubmitInterval) {
+        this.orderSubmitInterval = orderSubmitInterval;
     }
 
     private class OrderProcessing {

@@ -1,4 +1,4 @@
-package com.jforexcn.hub;
+package com.jforexcn.hub.lib;
 
 import com.dukascopy.api.Filter;
 import com.dukascopy.api.IContext;
@@ -8,6 +8,7 @@ import com.dukascopy.api.Instrument;
 import com.dukascopy.api.JFException;
 import com.dukascopy.api.OfferSide;
 import com.dukascopy.api.Period;
+import com.jforexcn.hub.HubStrategy;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -42,15 +43,20 @@ public class HubConfiguration {
         Properties fileProperties = new Properties();
         File fileDir = context.getFilesDir();
         try {
-            String filePath = fileDir.getParentFile().getAbsolutePath() + File.separator + CONFIG_FILE_NAME;
+            String filePath = CONFIG_FILE_NAME;
+            File configFile = new File(filePath);
+            if (!configFile.exists()) {
+                filePath = fileDir.getParentFile().getAbsolutePath() + File.separator + CONFIG_FILE_NAME;
+            }
             InputStream inputStream = new FileInputStream(filePath);
             fileProperties.load(inputStream);
+            inputStream.close();
             propertiesMap.clear();
             for (Map.Entry<Object, Object> entry : fileProperties.entrySet()) {
                 String key = (String) entry.getKey();
                 String value = (String) entry.getValue();
-                context.getConsole().getInfo().println("========= key: " + key);
-                context.getConsole().getInfo().println("========= value: " + value);
+//                context.getConsole().getInfo().println("========= key: " + key);
+//                context.getConsole().getInfo().println("========= value: " + value);
                 String[] keys = key.split("\\.");
                 String typeName = keys[2];
                 String mapKey = getConfigKey(keys);
@@ -65,11 +71,6 @@ public class HubConfiguration {
                     propertiesMap.put(mapKey, convertValue(typeName, value));
                 }
             }
-            context.getConsole().getInfo().println("=== HubConfiguration Start ===");
-            for (Map.Entry<String, Object> entry : propertiesMap.entrySet()) {
-                context.getConsole().getInfo().println(entry.getKey() + ": " + entry.getValue());
-            }
-            context.getConsole().getInfo().println("=== HubConfiguration End ===");
         } catch (IOException e) {
             e.printStackTrace();
             throw new JFException(e);
@@ -111,6 +112,24 @@ public class HubConfiguration {
             return propertiesMap.get(mapKey);
         }
         return null;
+    }
+
+    public static void printConfig(IContext context, String startsWith) {
+        context.getConsole().getInfo().println("========== " + startsWith + " print config start ==========");
+        for (Map.Entry<String, Object> entry : propertiesMap.entrySet()) {
+            if (entry.getKey().startsWith(startsWith)) {
+                context.getConsole().getInfo().println(entry.getKey() + ": " + entry.getValue().toString());
+            }
+        }
+        context.getConsole().getInfo().println("========== " + startsWith + " print config end ==========");
+    }
+
+    public static void printConfig(IContext context) {
+        context.getConsole().getInfo().println("=== HubConfiguration Start ===");
+        for (Map.Entry<String, Object> entry : propertiesMap.entrySet()) {
+            context.getConsole().getInfo().println(entry.getKey() + ": " + entry.getValue());
+        }
+        context.getConsole().getInfo().println("=== HubConfiguration End ===");
     }
 
 }
