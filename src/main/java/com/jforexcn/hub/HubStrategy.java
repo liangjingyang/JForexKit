@@ -18,6 +18,7 @@ import com.dukascopy.api.feed.ITickBar;
 
 import com.jforexcn.hub.lib.FeedDescriptors;
 import com.jforexcn.hub.lib.HubConfiguration;
+import com.jforexcn.hub.strategy.DailyVolatilityWatcher;
 import com.jforexcn.hub.strategy.NotificationCenter;
 import com.jforexcn.hub.strategy.OpenOrderTwo;
 import com.jforexcn.hub.strategy.StopLossOne;
@@ -60,6 +61,7 @@ public class HubStrategy implements IStrategy, ITailoredFeedListener<ITickBar> {
         supportedSubStrategies.put(OpenOrderTwo.class.getSimpleName(), OpenOrderTwo.class);
         singleSubStrategies.put(NotificationCenter.class.getSimpleName(), new NotificationCenter());
         singleSubStrategies.put(myOfflineTrades.class.getSimpleName(), new myOfflineTrades());
+        singleSubStrategies.put(DailyVolatilityWatcher.class.getSimpleName(), new DailyVolatilityWatcher());
     }
 
     @Override
@@ -193,6 +195,7 @@ public class HubStrategy implements IStrategy, ITailoredFeedListener<ITickBar> {
         public static final SubStrategyName STOP_LOSS_TWO = createSubStrategyName(StopLossTwo.class.getSimpleName());
         public static final SubStrategyName NOTIFICATION_CENTER = createSubStrategyName(NotificationCenter.class.getSimpleName());
         public static final SubStrategyName MY_OFFLINE_TRADES = createSubStrategyName(myOfflineTrades.class.getSimpleName());
+        public static final SubStrategyName DAILY_VOLATILITY_WATCHER = createSubStrategyName(DailyVolatilityWatcher.class.getSimpleName());
         public static final SubStrategyName OPEN_ORDER_TWO = createSubStrategyName(OpenOrderTwo.class.getSimpleName());
 
         public final String name;

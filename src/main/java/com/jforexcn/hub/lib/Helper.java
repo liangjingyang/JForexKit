@@ -49,7 +49,7 @@ public class Helper {
     public JFUtils mUtils;
     public IIndicators mIndicators;
 
-    boolean debug = false;
+    boolean debug = true;
 
     SimpleDateFormat mSimpleDateFormat = new SimpleDateFormat("yyyy_MM_dd_HH_mm_ss");
 
@@ -64,7 +64,6 @@ public class Helper {
         this.mIndicators = context.getIndicators();
         // date format
         mSimpleDateFormat.setTimeZone(TimeZone.getTimeZone("GTM"));
-        this.debug = mEngine.getType().equals(IEngine.Type.TEST);
     }
 
     public void onMessage(IMessage message) throws JFException {
@@ -220,6 +219,7 @@ public class Helper {
     }
 
     public void sendEmail(String subject, String body) {
+        sendMail(subject, body);
     }
 
     public boolean isStrategyInstrument(Instrument instrument) {

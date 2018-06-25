@@ -12,13 +12,17 @@ import com.dukascopy.api.IOrder;
 import com.dukascopy.api.ITick;
 import com.dukascopy.api.Instrument;
 import com.dukascopy.api.JFException;
+import com.dukascopy.api.Library;
 import com.dukascopy.api.Period;
+import com.dukascopy.api.RequiresFullAccess;
 
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+@RequiresFullAccess
+@Library("/data/github/JForexKit/build/libs/JForexKit-3.0.jar")
 public class NotificationCenter extends SubStrategy {
     private static String STRATEGY_TAG = "NotificationCenter";
     private Map<Instrument, ITick> lastTicks = new HashMap<>();

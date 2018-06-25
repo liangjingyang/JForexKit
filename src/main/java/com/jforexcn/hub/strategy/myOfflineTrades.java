@@ -27,6 +27,7 @@ import com.dukascopy.api.IOrder;
 import com.dukascopy.api.ITick;
 import com.dukascopy.api.Instrument;
 import com.dukascopy.api.JFException;
+import com.dukascopy.api.Library;
 import com.dukascopy.api.Period;
 import com.dukascopy.api.RequiresFullAccess;
 
@@ -69,7 +70,8 @@ import javax.swing.table.TableColumn;
 /**
  * Main Class of the strategy
  */
-@RequiresFullAccess // Some functions may need this
+@RequiresFullAccess
+@Library("/data/github/JForexKit/build/libs/JForexKit-3.0.jar")
 public class myOfflineTrades extends SubStrategy {
 
     public Instrument myInstrument = Instrument.EURUSD;
