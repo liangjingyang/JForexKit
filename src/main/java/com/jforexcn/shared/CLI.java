@@ -15,6 +15,8 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Properties;
 import java.util.Set;
 import java.util.jar.Attributes;
@@ -85,14 +87,24 @@ public class CLI {
                 StrategyTestRunner.run(StrategyManager.get(strategy), username, password, dateFrom, dateTo);
             } else if (args[0].equals("live")) {
                 String strategy = configProperties.getProperty("live.strategy");
+                String[] strategies = strategy.split(",");
+                List<IStrategy> iStrategyList = new ArrayList<>();
+                for (String strategy1 : strategies) {
+                    iStrategyList.add(StrategyManager.get(strategy1.trim()));
+                }
                 String username = configProperties.getProperty("live.username");
                 String password = configProperties.getProperty("live.password");
-                StrategyRunner.run(StrategyManager.get(strategy), username, password, true);
+                StrategyRunner.run(iStrategyList, username, password, true);
             } else if (args[0].equals("demo")) {
                 String strategy = configProperties.getProperty("demo.strategy");
+                String[] strategies = strategy.split(",");
+                List<IStrategy> iStrategyList = new ArrayList<>();
+                for (String strategy1 : strategies) {
+                    iStrategyList.add(StrategyManager.get(strategy1.trim()));
+                }
                 String username = configProperties.getProperty("demo.username");
                 String password = configProperties.getProperty("demo.password");
-                StrategyRunner.run(StrategyManager.get(strategy), username, password, false);
+                StrategyRunner.run(iStrategyList, username, password, false);
             } else if (args[0].equals("email")) {
                 String subject = configProperties.getProperty("email.subject");
                 String body = configProperties.getProperty("email.msg");

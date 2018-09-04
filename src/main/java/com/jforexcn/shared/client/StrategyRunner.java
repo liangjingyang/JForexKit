@@ -10,13 +10,15 @@ import com.jforexcn.shared.lib.StrategyManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.List;
+
 
 @RequiresFullAccess
 public class StrategyRunner {
     public static final Logger LOGGER = StrategyManager.LOGGER;
     private static String jnlpUrl = "http://platform.dukascopy.com/demo/jforex.jnlp";
 
-    public static void run(final IStrategy strategy, String username, String password, boolean isLive) throws Exception {
+    public static void run(final List<IStrategy> strategies, String username, String password, boolean isLive) throws Exception {
 
         if (isLive) {
             jnlpUrl = "http://platform.dukascopy.com/live/jforex.jnlp";
@@ -32,14 +34,14 @@ public class StrategyRunner {
             @Override
             public void onStart(long processId) {
                 LOGGER.info("Strategy started: " + processId);
-                MailService.sendMail("Congratulation!!! " + strategy.getClass().getSimpleName() + " Started!",
+                MailService.sendMail("Congratulation!!! " + geStrategiesName(strategies) + " Started!",
                         "ProcessId: " + processId);
             }
 
             @Override
             public void onStop(long processId) {
                 LOGGER.info("Strategy stopped: " + processId);
-                MailService.sendMail("DOWN!!! " + strategy.getClass().getSimpleName() + " Stopped!",
+                MailService.sendMail("DOWN!!! " + geStrategiesName(strategies)  + " Stopped!",
                         "ProcessId: " + processId);
                 if (client.getStartedStrategies().size() == 0) {
                     System.exit(0);
@@ -50,6 +52,8 @@ public class StrategyRunner {
             public void onConnect() {
                 retryCount = 0;
                 LOGGER.info("Connected");
+                MailService.sendMail("Congratulation!!! " + geStrategiesName(strategies)  + " Connect!",
+                        "retryCount: " + retryCount);
             }
 
             @Override
@@ -61,11 +65,11 @@ public class StrategyRunner {
 
             public void tryClientConnect() {
                 retryCount = retryCount + 1;
-                if (retryCount > 10 && retryCount % 10 == 0) {
-                    MailService.sendMail("DOWN! " + strategy.getClass().getSimpleName() +
+                if (retryCount > 10 && retryCount <= 100 && retryCount % 10 == 0) {
+                    MailService.sendMail("DOWN! " + geStrategiesName(strategies)  +
                             " Connection error, retryCount " + retryCount, "");
                 } else if (retryCount < 10) {
-                    MailService.sendMail("DOWN! " + strategy.getClass().getSimpleName() +
+                    MailService.sendMail("DOWN! " + geStrategiesName(strategies)  +
                             " Connection error, retryCount " + retryCount, "");
                 }
                 try {
@@ -100,9 +104,20 @@ public class StrategyRunner {
 //        client.setSubscribedInstruments(instruments);
         // start the strategy
         LOGGER.info("Starting strategy");
-
-        client.startStrategy(strategy);
+        for (IStrategy strategy : strategies) {
+            long id = client.startStrategy(strategy);
+            LOGGER.info("==================================== Started " + id + "============== : " + strategy.getClass().getSimpleName());
+        }
         // now it's running
+    }
+
+    private static String geStrategiesName(List<IStrategy> strategies) {
+        StringBuilder sb = new StringBuilder();
+        for (IStrategy strategy : strategies) {
+            sb.append(strategy.getClass().getSimpleName());
+            sb.append(",");
+        }
+        return sb.toString();
     }
 
 }

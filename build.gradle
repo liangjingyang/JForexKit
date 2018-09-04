@@ -35,11 +35,12 @@ publishing {
 }
 
 dependencies {
-    compile 'org.nanohttpd:nanohttpd:2.2.0'
+    compile 'org.projectlombok:lombok:1.18.2'
+    compile 'org.nanohttpd:nanohttpd:2.3.1'
     compile 'org.reflections:reflections:0.9.11'
-    compile 'org.apache.commons:commons-email:1.4'
-    compile 'com.dukascopy.dds2:DDS2-jClient-JForex:3.3.0'
-    compile 'com.dukascopy.api:JForex-API:2.13.49'
+    compile 'org.apache.commons:commons-email:1.5'
+    compile 'com.dukascopy.dds2:DDS2-jClient-JForex:3.3.16.1'
+    compile 'com.dukascopy.api:JForex-API:2.13.56'
     compile 'org.slf4j:slf4j-log4j12:1.7.5'
     testCompile 'org.mockito:mockito-core:2.7.2'
     testCompile 'junit:junit:4.12'

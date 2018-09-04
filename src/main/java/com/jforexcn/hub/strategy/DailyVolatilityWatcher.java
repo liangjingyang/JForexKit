@@ -80,8 +80,8 @@ public class DailyVolatilityWatcher extends SubStrategy {
                 double lastLowest = lastLowestHashMap.get(instrument);
                 double lastEmailHighest = lastEmailHighestHashMap.get(instrument);
                 double lastEmailLowest = lastEmailLowestHashMap.get(instrument);
-                helper.logDebug(instrument.toString() + ", lastEmailHighest: " + lastEmailHighest + ", lastEmailLowest: " + lastEmailLowest);
-                helper.logDebug(instrument.toString() + ", lastHighest: " + lastHighest + ", LastLowest: " + lastLowest);
+//                helper.logDebug(instrument.toString() + ", lastEmailHighest: " + lastEmailHighest + ", lastEmailLowest: " + lastEmailLowest);
+//                helper.logDebug(instrument.toString() + ", lastHighest: " + lastHighest + ", LastLowest: " + lastLowest);
                 List<IBar> askBars = helper.mHistory.getBars(instrument, period, OfferSide.ASK, Filter.ALL_FLATS, 2, askBar.getTime(), 0);
                 if (lastEmailHighest != lastHighest &&
                         askBars.get(0).getClose() + getReversePips(instrument) * pipValue <= lastHighest &&

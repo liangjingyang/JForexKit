@@ -2,25 +2,13 @@ package com.jforexcn.hub.indicator;
 
 import com.dukascopy.api.IIndicators;
 import com.dukascopy.api.Instrument;
-import com.dukascopy.api.indicators.DoubleRangeDescription;
-import com.dukascopy.api.indicators.IChartInstrumentsListener;
-import com.dukascopy.api.indicators.IIndicator;
-import com.dukascopy.api.indicators.IIndicatorContext;
-import com.dukascopy.api.indicators.IndicatorInfo;
-import com.dukascopy.api.indicators.IndicatorResult;
-import com.dukascopy.api.indicators.InputParameterInfo;
-import com.dukascopy.api.indicators.InstrumentListDescription;
-import com.dukascopy.api.indicators.IntegerListDescription;
-import com.dukascopy.api.indicators.IntegerRangeDescription;
-import com.dukascopy.api.indicators.OptInputDescription;
-import com.dukascopy.api.indicators.OptInputParameterInfo;
-import com.dukascopy.api.indicators.OutputParameterInfo;
+import com.dukascopy.api.indicators.*;
 
 /**
  * Created by simple(simple.continue@gmail.com) on 13/05/2018.
  */
 
-public class TwoInstrumentCorrelation implements IIndicator, IChartInstrumentsListener {
+public class TwoInstrumentCorrelation2 implements IIndicator, IChartInstrumentsListener {
     private IndicatorInfo indicatorInfo;
     private InputParameterInfo[] inputParameterInfos;
     private OptInputParameterInfo[] optInputParameterInfos;
@@ -52,7 +40,7 @@ public class TwoInstrumentCorrelation implements IIndicator, IChartInstrumentsLi
     @Override
     public void onStart(IIndicatorContext context) {
 
-        indicatorInfo = new IndicatorInfo("[ZZ]2InstrumentCorrelation",
+        indicatorInfo = new IndicatorInfo("[ZZ]2InstrumentCorrelation2",
                 "[ZZ] instrument1 - instrument2", "Custom Indicator",
                 false, false, false, 2, 11, 5);
 
@@ -90,19 +78,14 @@ public class TwoInstrumentCorrelation implements IIndicator, IChartInstrumentsLi
                         new DoubleRangeDescription(b2, -2000, 2000, 0.01, 5)),
                 new OptInputParameterInfo("Result Offset", OptInputParameterInfo.Type.OTHER,
                         new DoubleRangeDescription(offset, -200, 200, 0.01, 5)),
-                new OptInputParameterInfo("Short MA Time period", OptInputParameterInfo.Type.OTHER, new IntegerRangeDescription(shortMaTimePeriod, 1, 2000, 1)),
-                new OptInputParameterInfo("Long MA Time period", OptInputParameterInfo.Type.OTHER, new IntegerRangeDescription(longMaTimePeriod, 1, 2000, 1)),
-                new OptInputParameterInfo("MA type", OptInputParameterInfo.Type.OTHER, new IntegerListDescription(maType, maValues, maNames)),
                 new OptInputParameterInfo("Formula type", OptInputParameterInfo.Type.OTHER, new IntegerListDescription(formulaType, formulaValues, formulaNames))
 
         };
 
         outputParameterInfos = new OutputParameterInfo[] {
                 new OutputParameterInfo("Diff", OutputParameterInfo.Type.DOUBLE, OutputParameterInfo.DrawingStyle.LINE, true),
-                new OutputParameterInfo("Short MA", OutputParameterInfo.Type.DOUBLE, OutputParameterInfo.DrawingStyle.LINE, true),
-                new OutputParameterInfo("Long MA", OutputParameterInfo.Type.DOUBLE, OutputParameterInfo.DrawingStyle.LINE, true),
-                new OutputParameterInfo("Distance", OutputParameterInfo.Type.DOUBLE, OutputParameterInfo.DrawingStyle.HISTOGRAM, true),
-                new OutputParameterInfo("Slope", OutputParameterInfo.Type.DOUBLE, OutputParameterInfo.DrawingStyle.LINE, true)
+                new OutputParameterInfo("Up Line", OutputParameterInfo.Type.DOUBLE, OutputParameterInfo.DrawingStyle.LINE, true),
+                new OutputParameterInfo("Down Line", OutputParameterInfo.Type.DOUBLE, OutputParameterInfo.DrawingStyle.LINE, true)
         };
 
         ma = context.getIndicatorsProvider().getIndicator("MA");

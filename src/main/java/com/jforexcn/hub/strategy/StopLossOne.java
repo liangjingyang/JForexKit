@@ -191,7 +191,7 @@ public class StopLossOne extends SubStrategy {
                         }
                     }
                 } else if (feedDescriptor.getTickBarSize().getSize() == com.jforexcn.hub.lib.FeedDescriptors.TICK_BAR_SIZE_LARGE) {
-                    // 有止损价格的, 并且止损价高于开仓价格的, 移动止损: 2/3个10日ATR
+
                     double trailingSLValue = getTrailingStopLossPips()  * instrument.getPipValue();
                     double minTrailingValue = getMinTrailingPips() * instrument.getPipValue();
                     double stopLossPrice;
@@ -203,8 +203,8 @@ public class StopLossOne extends SubStrategy {
                                 stopLossPrice = tickBar.getClose() - trailingSLValue;
                                 helper.logDebug("1000tick bar BUY1 cInstrument: " + instrument + ", order.label: " + order.getLabel() + ", half_atr: " + trailingSLValue + ", stopLossPrice: " + stopLossPrice + "close: " + tickBar.getClose() + ", open " + tickBar.getOpen());
                                 helper.setStopLossPrice(order, stopLossPrice);
-                            } else if (tickBar.getClose() > tickBar.getOpen()) {
-                                double trailingValue = (tickBar.getClose() - tickBar.getOpen()) * getTrailingSpeed();
+                            } else {
+                                double trailingValue = Math.abs(tickBar.getClose() - tickBar.getOpen()) * getTrailingSpeed();
                                 if (trailingValue > minTrailingValue) {
                                     stopLossPrice = order.getStopLossPrice() + trailingValue;
                                     helper.logDebug("1000tick bar BUY2 cInstrument: " + instrument + ", order.label: " + order.getLabel() + ", half_atr: " + trailingSLValue + ", stopLossPrice: " + stopLossPrice + "close: " + tickBar.getClose() + ", open " + tickBar.getOpen());
@@ -218,8 +218,8 @@ public class StopLossOne extends SubStrategy {
                                 stopLossPrice = tickBar.getClose() + trailingSLValue;
                                 helper.logDebug("1000tick SELL1 cInstrument: " + instrument + ", order.label: " + order.getLabel() + ", half_atr: " + trailingSLValue + ", stopLossPrice: " + stopLossPrice + "close: " + tickBar.getClose() + ", open " + tickBar.getOpen());
                                 helper.setStopLossPrice(order, stopLossPrice);
-                            } else if (tickBar.getClose() < tickBar.getOpen() && tickBar.getOpen() - tickBar.getClose() > minTrailingValue) {
-                                double trailingValue = (tickBar.getOpen() - tickBar.getClose()) * getTrailingSpeed();
+                            } else {
+                                double trailingValue = Math.abs(tickBar.getOpen() - tickBar.getClose()) * getTrailingSpeed();
                                 if (trailingValue > minTrailingValue) {
                                     stopLossPrice = order.getStopLossPrice() - trailingValue;
                                     helper.logDebug("1000tick bar SELL2 cInstrument: " + instrument + ", order.label: " + order.getLabel() + ", half_atr: " + trailingSLValue + ", stopLossPrice: " + stopLossPrice + "close: " + tickBar.getClose() + ", open " + tickBar.getOpen());
@@ -246,7 +246,7 @@ public class StopLossOne extends SubStrategy {
                     IOrder.State.FILLED.equals(order.getState()) &&
                     order.getStopLossPrice() > 0 &&
                     instrument.equals(order.getInstrument()) &&
-                    !order.getLabel().contains("NoStopLoss")
+                    isMyOrder(order)
                     ) {
                 orders.add(order);
             }
@@ -262,12 +262,16 @@ public class StopLossOne extends SubStrategy {
                     IOrder.State.FILLED.equals(order.getState()) &&
                     order.getStopLossPrice() <= 0 &&
                     instrument.equals(order.getInstrument()) &&
-                    !order.getLabel().contains("NoStopLoss")
+                    isMyOrder(order)
                     ) {
                 orders.add(order);
             }
         }
         return orders;
+    }
+
+    private boolean isMyOrder(IOrder order) {
+        return order.getLabel().contains(STRATEGY_TAG) || !order.getLabel().contains("_");
     }
 
 }
