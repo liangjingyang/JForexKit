@@ -52,10 +52,16 @@ import java.util.concurrent.Future;
 public class ContextTestHelper implements IContext {
 
     private EngineTestHelper engine;
+    private HistoryTestHelper history;
+    private IndicatorsTestHelper indicators;
     private Set<Instrument> subscribedInstruments = new HashSet<>();
 
     public void setEngine(EngineTestHelper engine) {
         this.engine = engine;
+    }
+
+    public void setHistory(HistoryTestHelper history) {
+        this.history = history;
     }
 
     @Override
@@ -100,7 +106,7 @@ public class ContextTestHelper implements IContext {
 
     @Override
     public IHistory getHistory() {
-        return null;
+        return history;
     }
 
     @Override
@@ -266,6 +272,11 @@ public class ContextTestHelper implements IContext {
     @Override
     public void setConfigurableChangeListener(ConfigurableChangeListener listener) {
 
+    }
+
+    @Override
+    public long getTime() {
+        return System.currentTimeMillis();
     }
 
     @Override

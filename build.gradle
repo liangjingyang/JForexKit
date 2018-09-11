@@ -76,6 +76,23 @@ task hubJar(type: Jar) {
     exclude('com/jforexcn/wiki/**')
     exclude('com/jforexcn/inbox/**')
     exclude('com/jforexcn/shared/**')
+    exclude('com/jforexcn/tower/**')
+    with jar
+}
+
+task towerJar(type: Jar) {
+    manifest {
+        attributes 'Implementation-Title': project.name,
+                'Implementation-Version': version,
+                'Bundle-Name': project.name,
+                'Bundle-SymbolicName': 'com.jforexcn.tower',
+                'Export-Package': 'com.jforexcn.tower*'
+    }
+    baseName = project.name
+    exclude('com/jforexcn/hub/**')
+    exclude('com/jforexcn/wiki/**')
+    exclude('com/jforexcn/inbox/**')
+    exclude('com/jforexcn/shared/**')
     with jar
 }
 

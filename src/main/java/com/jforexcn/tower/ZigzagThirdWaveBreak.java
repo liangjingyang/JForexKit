@@ -4,7 +4,9 @@ package com.jforexcn.tower;
  * Created by simple on 3/9/2018.
  */
 
+import SevenZip.Compression.LZMA.Base;
 import com.dukascopy.api.*;
+import com.jforexcn.tower.Util.BaseHelper;
 
 import java.util.List;
 
@@ -30,13 +32,15 @@ public class ZigzagThirdWaveBreak extends BaseStrategy {
     @Configurable(value = "Period")
     public Period cPeriod = Period.ONE_MIN;
     @Configurable(value = "FirstWavePips")
-    public int cFirstWavePips = 15;
+    public int cFirstWaveMinPips = 5;
     @Configurable(value = "SecondWaveFactor")
-    public double cSecondWaveFactor = 0.4;
+    public double cSecondToFirstLengthFactor = 0.3;
     @Configurable(value = "SecondWaveMaxPips")
-    public int cSecondWaveMaxPips = 10;
-    @Configurable(value = "ThirdWaveSlopeFactor")
-    public double cThirdWaveSlopeFactor = 1.5;
+    public int cSecondWaveMaxPips = 20;
+    @Configurable(value = "SecondWaveStrongFactor")
+    public double cSecondToFirstStrongFactor = 2;
+    @Configurable(value = "ThirdWaveStrongFactor")
+    public double cSecondToThirdStrongFactor = 2;
     @Configurable(value = "cInitSLFactor")
     public double cInitSLFactor = 0.5;
     @Configurable(value = "cInitTPFactor")
@@ -64,8 +68,10 @@ public class ZigzagThirdWaveBreak extends BaseStrategy {
                         if (wave.c > wave.b) { // 3th wave break down,
                             command = IEngine.OrderCommand.SELL;
                             openPrice = tick.getBid();
-                            initSL = wave.c;
-                            initTP = wave.d + (wave.d - wave.c);
+                            initSL = wave.d - (wave.d - wave.c) * cInitSLFactor;
+                            initSL = BaseHelper.scalePrice(initSL, instrument.getPipScale());
+                            initTP = wave.d + (wave.d - wave.c) * cInitTPFactor;
+                            initTP = BaseHelper.scalePrice(initTP, instrument.getPipScale());
                             if (openPrice < wave.b) {
                                 orderHelper.submitOrder(getLabel(1), instrument, command, cAmount,
                                         openPrice, 1, initSL, initTP, tick.getTime());
@@ -73,8 +79,10 @@ public class ZigzagThirdWaveBreak extends BaseStrategy {
                         } else {
                             command = IEngine.OrderCommand.BUY;
                             openPrice = tick.getAsk();
-                            initSL = wave.c;
-                            initTP = wave.d + (wave.d - wave.c);
+                            initSL = wave.d - (wave.d - wave.c) * cInitSLFactor;
+                            initSL = BaseHelper.scalePrice(initSL, instrument.getPipScale());
+                            initTP = wave.d + (wave.d - wave.c) * cInitTPFactor;
+                            initTP = BaseHelper.scalePrice(initTP, instrument.getPipScale());
                             if (openPrice > wave.b) {
                                 orderHelper.submitOrder(getLabel(0), instrument, command, cAmount,
                                         openPrice, 1, initSL, initTP, tick.getTime());
@@ -133,8 +141,8 @@ public class ZigzagThirdWaveBreak extends BaseStrategy {
     }
 
     public void printDebug() {
-        logInfo(wave.toString());
-        logInfo("fit: " + fit());
+        logDebug(wave.toString());
+        logDebug("fit: " + fit());
     }
 
     private Object[] calculateZigzag(long time) throws JFException {
@@ -153,16 +161,16 @@ public class ZigzagThirdWaveBreak extends BaseStrategy {
          * 4, 1浪斜率 > 2浪
          * 6. 3浪斜率 > 2浪 * X
          * */
-        logDebug("" + (wave.a > 0) + (wave.d > 0) + (wave.ab >= cFirstWavePips) + (wave.bc <= cSecondWaveMaxPips) +
-                (wave.bc <= wave.ab * cSecondWaveFactor) + (wave.abSlope >= wave.bcSlope) +
-                (wave.cdSlope >= wave.bcSlope * cThirdWaveSlopeFactor));
+        logDebug("" + (wave.a > 0) + (wave.d > 0) + (wave.ab >= cFirstWaveMinPips) + (wave.bc <= cSecondWaveMaxPips) +
+                (wave.bc <= wave.ab * cSecondToFirstLengthFactor) + (wave.bcStrong <= wave.abStrong * cSecondToFirstStrongFactor) +
+                (wave.bcStrong <= wave.cdStrong * cSecondToThirdStrongFactor));
         return wave.a > 0 &&
                 wave.d > 0 && // this 2 statement means the wave update completed
-                wave.ab >= cFirstWavePips &&
+                wave.ab >= cFirstWaveMinPips &&
                 wave.bc <= cSecondWaveMaxPips &&
-                wave.bc <= wave.ab * cSecondWaveFactor &&
-                wave.abSlope >= wave.bcSlope &&
-                wave.cdSlope >= wave.bcSlope * cThirdWaveSlopeFactor;
+                wave.bc <= wave.ab * cSecondToFirstLengthFactor &&
+                wave.bcStrong <= wave.abStrong * cSecondToFirstStrongFactor &&
+                wave.bcStrong <= wave.cdStrong * cSecondToThirdStrongFactor;
     }
 
     private class Wave {
@@ -176,9 +184,9 @@ public class ZigzagThirdWaveBreak extends BaseStrategy {
         private int abBars;
         private int bcBars;
         private int cdBars;
-        private double abSlope;
-        private double bcSlope;
-        private double cdSlope;
+        private double abStrong;
+        private double bcStrong;
+        private double cdStrong;
 
         @Override
         public String toString() {
@@ -194,9 +202,9 @@ public class ZigzagThirdWaveBreak extends BaseStrategy {
             sb.append("abBars:").append(abBars).append(" ");
             sb.append("bcBars:").append(bcBars).append(" ");
             sb.append("cdBars:").append(cdBars).append(" ");
-            sb.append("abSlope:").append(abSlope).append(" ");
-            sb.append("bcSlope:").append(bcSlope).append(" ");
-            sb.append("cdSlope:").append(cdSlope).append(" ");
+            sb.append("abStrong:").append(abStrong).append(" ");
+            sb.append("bcStrong:").append(bcStrong).append(" ");
+            sb.append("cdStrong:").append(cdStrong).append(" ");
             return sb.toString();
         }
 
@@ -207,8 +215,8 @@ public class ZigzagThirdWaveBreak extends BaseStrategy {
                 d = tick.getAsk();
             }
 
-            cd = Math.abs(d - c);
-            cdSlope = cd / cdBars;
+            cd = Math.abs(d - c) / instrument.getPipValue();
+            cdStrong = cd / cdBars;
             return (a > 0 && d > 0);
         }
 
@@ -245,8 +253,8 @@ public class ZigzagThirdWaveBreak extends BaseStrategy {
             bcBars = cIndex - bIndex;
             abBars = bIndex - aIndex;
 
-            abSlope = ab / abBars;
-            bcSlope = bc / bcBars;
+            abStrong = ab / abBars;
+            bcStrong = bc / bcBars;
         }
     }
 }

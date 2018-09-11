@@ -351,6 +351,11 @@ public class OrderTestHelper extends BaseTestHelper implements IOrder {
     }
 
     @Override
+    public void setComment(String comment) throws JFException {
+
+    }
+
+    @Override
     public void setRequestedAmount(double amount) throws JFException {
 
     }
@@ -473,6 +478,11 @@ public class OrderTestHelper extends BaseTestHelper implements IOrder {
     @Override
     public List<ICloseOrder> getCloseHistory() {
         return null;
+    }
+
+    @Override
+    public boolean isOCO() {
+        return false;
     }
 
     @Override

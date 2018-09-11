@@ -2,10 +2,7 @@ package com.jforexcn.tower.Util;
 
 import com.dukascopy.api.*;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Created by simple on 2018/8/18
@@ -29,24 +26,28 @@ public class OrderHelper {
     }
 
     public void onMessage(IMessage message) throws JFException {
-        IOrder order = message.getOrder();
-        if (order != null) {
-            removeOrderProcessing(order.getId());
-        }
-        if (IMessage.Type.ORDER_SUBMIT_REJECTED.equals(message.getType())) {
-        } else if (IMessage.Type.ORDER_SUBMIT_OK.equals(message.getType())) {
-        } else if (IMessage.Type.ORDER_FILL_REJECTED.equals(message.getType())) {
-            addCounter(message.getType());
-            checkAndResetCounter(message.getType(), 5);
-        } else if (IMessage.Type.ORDER_FILL_OK.equals(message.getType())) {
-        } else if (IMessage.Type.ORDER_CHANGED_REJECTED.equals(message.getType())) {
-            addCounter(message.getType());
-            checkAndResetCounter(message.getType(), 5);
-        } else if (IMessage.Type.ORDER_CHANGED_OK.equals(message.getType())) {
-        } else if (IMessage.Type.ORDER_CLOSE_REJECTED.equals(message.getType())) {
-            addCounter(message.getType());
-            checkAndResetCounter(message.getType(), 5);
-        } else if (IMessage.Type.ORDER_CLOSE_OK.equals(message.getType())) {
+        try {
+            IOrder order = message.getOrder();
+            if (order != null) {
+                removeOrderProcessing(order.getId());
+            }
+            if (IMessage.Type.ORDER_SUBMIT_REJECTED.equals(message.getType())) {
+            } else if (IMessage.Type.ORDER_SUBMIT_OK.equals(message.getType())) {
+            } else if (IMessage.Type.ORDER_FILL_REJECTED.equals(message.getType())) {
+                addCounter(message.getType());
+                checkAndResetCounter(message.getType(), 5);
+            } else if (IMessage.Type.ORDER_FILL_OK.equals(message.getType())) {
+            } else if (IMessage.Type.ORDER_CHANGED_REJECTED.equals(message.getType())) {
+                addCounter(message.getType());
+                checkAndResetCounter(message.getType(), 5);
+            } else if (IMessage.Type.ORDER_CHANGED_OK.equals(message.getType())) {
+            } else if (IMessage.Type.ORDER_CLOSE_REJECTED.equals(message.getType())) {
+                addCounter(message.getType());
+                checkAndResetCounter(message.getType(), 5);
+            } else if (IMessage.Type.ORDER_CLOSE_OK.equals(message.getType())) {
+            }
+        } catch (Exception e) {
+            e.printStackTrace(context.getConsole().getErr());
         }
     }
 
@@ -62,7 +63,8 @@ public class OrderHelper {
         if (theCounter.containsKey(obj)) {
             int count = theCounter.get(obj);
             if (count >= waterMark) {
-                BaseHelper.sendMail(strategyTag + " " + obj.toString() + " reaches " + waterMark, "");
+                context.getConsole().getErr().println(strategyTag + " " + obj.toString() + " reaches " + waterMark);
+//                BaseHelper.sendMail(strategyTag + " " + obj.toString() + " reaches " + waterMark, "");
                 theCounter.put(obj, 0);
             }
         }
@@ -277,6 +279,49 @@ public class OrderHelper {
         return orders;
     }
 
+    public List<IOrder> getStrategyOrdersByInstrumentAndCommand(Instrument instrument, IEngine.OrderCommand command) throws JFException {
+        List<IOrder> orders = new ArrayList<>();
+        for (IOrder order : context.getEngine().getOrders()) {
+            if (order.getLabel().startsWith(strategyTag)) {
+                if (order.getInstrument().equals(instrument) && command.equals(order.getOrderCommand())) {
+                    orders.add(order);
+                }
+            }
+        }
+        return orders;
+    }
+
+    public ArrayList<IOrder> getFilledOrdersWithStopLossByInstrument(Instrument instrument) throws JFException {
+        ArrayList<IOrder> orders = new ArrayList<>();
+        for (IOrder order : context.getEngine().getOrders()) {
+            if (order != null &&
+                    IOrder.State.FILLED.equals(order.getState()) &&
+                    order.getStopLossPrice() > 0 &&
+                    instrument.equals(order.getInstrument()) &&
+                    order.getLabel().startsWith(strategyTag)
+            ) {
+                orders.add(order);
+            }
+        }
+        return orders;
+    }
+
+
+    public ArrayList<IOrder> getFilledOrdersWithoutStopLossByInstrument(Instrument instrument) throws JFException {
+        ArrayList<IOrder> orders = new ArrayList<>();
+        for (IOrder order : context.getEngine().getOrders()) {
+            if (order != null &&
+                    IOrder.State.FILLED.equals(order.getState()) &&
+                    order.getStopLossPrice() <= 0 &&
+                    instrument.equals(order.getInstrument()) &&
+                    order.getLabel().startsWith(strategyTag)
+            ) {
+                orders.add(order);
+            }
+        }
+        return orders;
+    }
+
     public IOrder getStrategyLastOrderByInstrument(Instrument instrument) throws JFException {
         IOrder lastOrder = null;
         for (IOrder order : context.getEngine().getOrders()) {
@@ -293,5 +338,13 @@ public class OrderHelper {
             }
         }
         return lastOrder;
+    }
+
+    public void closeAllStrategyOrders() throws JFException {
+        for (IOrder order : context.getEngine().getOrders()) {
+            if (order.getLabel().startsWith(strategyTag)) {
+                order.close();
+            }
+        }
     }
 }

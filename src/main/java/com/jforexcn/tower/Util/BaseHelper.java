@@ -5,7 +5,6 @@ import com.dukascopy.api.IHistory;
 import com.dukascopy.api.Instrument;
 import com.dukascopy.api.JFException;
 import com.jforexcn.shared.lib.MailService;
-import lombok.Data;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -13,10 +12,8 @@ import java.math.RoundingMode;
 /**
  * Created by simple on 2018/8/18
  */
-@Data
 public class BaseHelper {
 
-    private boolean debug;
 
     public static long getLastTickTime(Instrument instrument, IContext context) throws JFException {
         long lastTickTime = context.getHistory().getTimeOfLastTick(instrument);

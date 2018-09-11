@@ -15,6 +15,8 @@ public abstract class BaseStrategy implements IStrategy {
     public Instrument instrument = Instrument.EURUSD;
     @Configurable(value = "spreads", stepSize = 1)
     public int spreads = 3;
+    @Configurable(value = "isDebug")
+    public boolean debug = false;
 
     protected OrderHelper orderHelper;
 
@@ -78,7 +80,9 @@ public abstract class BaseStrategy implements IStrategy {
     }
 
     public void logDebug(String msg) {
-        this.console.getOut().println("=== [" + getStrategyTag() + "][D] === " + msg);
+        if (debug) {
+            this.console.getOut().println("=== [" + getStrategyTag() + "][D] === " + msg);
+        }
     }
 
     public void logInfo(String msg) {
